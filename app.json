@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "listify",
+    "slug": "listify",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
