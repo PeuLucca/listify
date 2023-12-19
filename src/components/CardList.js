@@ -59,7 +59,7 @@ const CardList = (props) => {
   }, []);
 
   return (
-    <Animatable.View key={id} style={styles.container} animation="fadeIn" duration={1000} delay={500}>
+    <Animatable.View key={id} style={styles.container} animation="fadeIn" duration={1500} delay={90}>
       <View style={styles.header}>
         <Text style={styles.title}>{truncateText(name, 26)}</Text>
         <TouchableOpacity onPress={toggleDropdown}>
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     borderRadius: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FEFDFD',
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
