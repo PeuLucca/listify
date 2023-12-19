@@ -17,7 +17,13 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Listify"
           component={Login}
-          options={{ headerShown: false }}
+          options={{ 
+            headerShown: true,
+            headerLeft: null,
+            headerStyle: {
+              backgroundColor: '#B3DCD8',
+            },
+           }}
         />
         <Stack.Screen
           name="Minhas Listas"
