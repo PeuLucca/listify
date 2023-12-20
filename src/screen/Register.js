@@ -9,12 +9,17 @@ import {
   ImageBackground,
   Alert
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from "../useAuth";
 
 // Firebase
-import auth from "@react-native-firebase/auth";
-import db from "@react-native-firebase/database"
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+// import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import db from "@react-native-firebase/database";
 
 const Register = () => {
+  const navigation = useNavigation();
+  const { login } = useAuth();
   const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
 
   // Form
@@ -39,7 +44,7 @@ const Register = () => {
   };
 
   const handleLogin = () => {
-    login();
+    // login();
     navigation.navigate('Minhas Listas');
   };
 
@@ -51,21 +56,29 @@ const Register = () => {
 
   // Database functions
   const saveUser = async () => {
-    try{
-      const response = await auth().createUserWithEmailAndPassword(email,senha);
-      if(response.user){
-        await createProfile(response);
-        handleLogin();
-      }
-    }catch(e){
-      console.error(e);
-      Alert.alert("Ops!", "Algo deu errado");
+    try {
+      const auth = getAuth();
+      const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+      const user = userCredential.user;
+      const lastLoginTime = user.metadata.lastSignInTime;
+  
+      // Save user data to Firestore
+      console.log(`UID --> ${user.uid}`);
+      console.log(`Name --> ${nome}`);
+      console.log(`Email --> ${user.email}`);
+      console.log(`Último login --> ${lastLoginTime}`);
+
+      // criar nó aqui!!!
+  
+      handleLogin();
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error(errorCode);
+      console.error(errorMessage);
     }
   };
-
-  const createProfile = async (response) => {
-    db().ref(`/users/${response.user.uid}`).set({nome});
-  };
+  
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
