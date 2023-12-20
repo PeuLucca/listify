@@ -1,4 +1,4 @@
-package com.listify;
+package com.pedro.listify;
 
 import android.os.Build;
 import android.os.Bundle;

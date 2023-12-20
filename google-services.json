@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "851695701545",
+    "project_id": "listify-35fac",
+    "storage_bucket": "listify-35fac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851695701545:android:d10aeca4d228dedb249638",
+        "android_client_info": {
+          "package_name": "com.pedro.listify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuFNJyoxmk3ve0I-MY7758SHd7JiDlW3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

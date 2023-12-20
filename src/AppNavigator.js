@@ -6,7 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 // Screens
 import Login from './screen/Login';
 import Home from './screen/Home';
-import Other from './screen/Other';
+import Register from './screen/Register';
 
 const Stack = createStackNavigator();
 
@@ -21,7 +21,7 @@ const AppNavigator = () => {
             headerShown: true,
             headerLeft: null,
             headerStyle: {
-              backgroundColor: '#B3DCD8',
+              
             },
            }}
         />
@@ -37,8 +37,8 @@ const AppNavigator = () => {
           }}
         />
         <Stack.Screen
-          name="Other"
-          component={Other}
+          name="Novo usuário"
+          component={Register}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

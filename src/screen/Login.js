@@ -1,53 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ImageBackground } from 'react-native';
-import { TouchableOpacity } from 'react-native';
-import { Text } from 'react-native';
+// Core
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Text,
+  Button,
+  ImageBackground
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+
+// UseAuth
 import { useAuth } from "../useAuth";
 
-// Api
-import { getUser, insertUser } from '../api';
-
-const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
-
 const Login = () => {
-  const navigation = useNavigation();
+  const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
   const { login } = useAuth();
+  const navigation = useNavigation();
 
-  // Form
-  const [nome, setNome] = useState("");
-  const [ultimoLogin, setUltimoLogin] = useState("");
-
+  // Handle functions
   const handleLogin = () => {
     login();
     navigation.navigate('Minhas Listas');
   };
 
   const handleNewuser = () => {
-    console.warn("New user screen!!");
+    navigation.navigate('Novo usuário');
   };
-
-  const fetchUsers = async () => {
-    try {
-      const response = await getUser();
-      console.warn('Fetched users:', response);
-    } catch (e) {
-      console.warn('Error fetching users:', e);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, [])
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
       <View style={styles.container}>
         <TouchableOpacity style={styles.newUserBox} onPress={handleNewuser}>
-          <View onPress={handleNewuser}>
+          <View>
             <Text style={styles.plus}>+</Text>
           </View>
         </TouchableOpacity>
+        <View>
+          <Button title='Login' onPress={handleLogin} />
+        </View>
       </View>
     </ImageBackground>
   );
@@ -81,6 +72,59 @@ const styles = StyleSheet.create({
   plus: {
     fontSize: 40,
     color: 'gray',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: 'gray',
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 20,
+    padding: 10,
+    width: '100%',
+    borderRadius: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  button: {
+    padding: 10,
+    borderRadius: 5,
+    width: '48%',
+    alignItems: 'center',
+  },
+  saveButton: {
+    backgroundColor: 'green',
+  },
+  closeButton: {
+    backgroundColor: 'red',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 15,
   },
 });
 
