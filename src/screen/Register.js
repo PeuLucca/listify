@@ -44,7 +44,7 @@ const Register = () => {
   };
 
   const handleLogin = () => {
-    // login();
+    login();
     navigation.navigate('Minhas Listas');
   };
 
@@ -60,13 +60,11 @@ const Register = () => {
       const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
-      const lastLoginTime = user.metadata.lastSignInTime;
+      const uid_data = user.uid;
+      const email_data = user.email;
+      const lastLoginTime_data = user.metadata.lastSignInTime;
   
       // Save user data to Firestore
-      console.log(`UID --> ${user.uid}`);
-      console.log(`Name --> ${nome}`);
-      console.log(`Email --> ${user.email}`);
-      console.log(`Último login --> ${lastLoginTime}`);
 
       // criar nó aqui!!!
   

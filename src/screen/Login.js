@@ -1,5 +1,5 @@
 // Core
-import React, { useEffect } from 'react';
+import React, { useContext } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,17 +9,12 @@ import {
   ImageBackground
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-// UseAuth
-import { useAuth } from "../useAuth";
-
-// Firebase
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { AuthContext } from '../AuthProvider';
 
 const Login = () => {
   const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
-  const { login } = useAuth();
   const navigation = useNavigation();
+  // const { isAuthenticated } = useContext(AuthContext);
 
   // Handle functions
   const handleLogin = () => {
@@ -30,23 +25,6 @@ const Login = () => {
   const handleNewuser = () => {
     navigation.navigate('Novo usuário');
   };
-
-  const checkUserLogged = () => {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const uid = user.uid;
-        console.log(`User ${uid} is logged!!!`);
-        // Salvar as informações do usuário aqui e exibir no card styles.userBox
-      } else {
-        console.log("User is not logged");
-      }
-    });
-  };
-
-  useEffect(() => {
-    checkUserLogged();
-  }, [])
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>

@@ -1,13 +1,18 @@
-import React from 'react';
+// Core
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, ImageBackground } from 'react-native';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
+
+// Components
 import CardList from '../components/CardList';
+
+// Mock
 import { list } from '../mock';
 
-const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
-
 const Home = () => {
+  const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
+
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
       <View style={styles.container}>

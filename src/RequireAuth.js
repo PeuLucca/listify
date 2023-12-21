@@ -1,6 +1,6 @@
 // Core
 import React, { useContext } from 'react';
-import { AuthContext } from './AuthContext';
+import { AuthContext } from './AuthProvider';
 
 const RequireAuth = (WrappedComponent) => {
   const WithAuthentication = (props) => {
