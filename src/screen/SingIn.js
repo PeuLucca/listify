@@ -10,26 +10,21 @@ import {
   Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from "../useAuth";
 
-// Firebase
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-// import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import db from "@react-native-firebase/database";
+// Async Storage
+import AsyncStorage from '@react-native-community/async-storage';
 
-const Register = () => {
+const SignIn = () => {
   const navigation = useNavigation();
-  const { login } = useAuth();
   const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
 
   // Form
-  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
   // Handle functions
   const handleValidateUser = () => {
-    if(nome === "" || email === "" || senha === ""){
+    if(email === "" || senha === ""){
       Alert.alert(
         'Atenção!',
         'Preencha os campos obrigatórios',
@@ -38,57 +33,38 @@ const Register = () => {
         ],
       );
     }else{
-      saveUser();
-      handleClearInputs();
+        logUserIn();
     }
   };
 
-  const handleLogin = () => {
-    login();
-    navigation.navigate('Minhas Listas');
-  };
-
-  const handleClearInputs = () => {
-    setNome("");
-    setEmail("");
-    setSenha("");
-  };
-
-  // Database functions
-  const saveUser = async () => {
+  // LogIn functions
+  const logUserIn = async () => {
     try {
-      const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-      const user = userCredential.user;
-      const uid_data = user.uid;
-      const email_data = user.email;
-      const lastLoginTime_data = user.metadata.lastSignInTime;
-  
-      // Save user data to Firestore
+      const emailStorage = await AsyncStorage.getItem('key_email');
+      const senhaStorage = await AsyncStorage.getItem('key_senha');
+      if(emailStorage === email && senhaStorage === senha){
+        AsyncStorage.setItem('key_lastLogin', date);
+        navigation.navigate('Minhas Listas');
+      } else {
+        Alert.alert(
+            'Erro ao autenticar!',
+            'Usuário e/ou senha incorretos!',
+            [
+              { text: 'OK', onPress: () => console.log('OK Pressed') },
+            ],
+          );
+      }
 
-      // criar nó aqui!!!
-  
-      handleLogin();
     } catch (error) {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.error(errorCode);
-      console.error(errorMessage);
+      console.error('Error fetching data from AsyncStorage:', error);
     }
   };
-  
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
       <View style={styles.container}>
-        <Text style={styles.title}>Cadastrar usuário</Text>
+        <Text style={styles.title}>Log In</Text>
         <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Nome"
-            onChangeText={(text) => setNome(text)}
-            value={nome}
-          />
           <TextInput
             style={styles.input}
             placeholder="E-mail"
@@ -104,7 +80,7 @@ const Register = () => {
             secureTextEntry
           />
           <TouchableOpacity style={styles.button} onPress={handleValidateUser}>
-            <Text style={styles.buttonText}>Criar usuário</Text>
+            <Text style={styles.buttonText}>Logar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -155,4 +131,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Register;
+export default SignIn;

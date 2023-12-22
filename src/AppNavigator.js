@@ -2,11 +2,13 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { TouchableOpacity, Text } from 'react-native';
 
 // Screens
 import Login from './screen/Login';
 import Home from './screen/Home';
-import Register from './screen/Register';
+import SignUp from './screen/SignUp';
+import SignIn from "./screen/SingIn";
 
 const Stack = createStackNavigator();
 
@@ -20,9 +22,6 @@ const AppNavigator = () => {
           options={{ 
             headerShown: true,
             headerLeft: null,
-            headerStyle: {
-              
-            },
            }}
         />
         <Stack.Screen
@@ -34,11 +33,27 @@ const AppNavigator = () => {
             headerStyle: {
               backgroundColor: '#FFFDFE',
             },
+            headerRight: () => (
+              <TouchableOpacity
+                style={{ marginRight: 10 }}
+                onPress={() => {
+                  // Adicione a lógica de logout aqui
+                  console.log("Logout Pressed");
+                }}
+              >
+                <Text>Logout</Text>
+              </TouchableOpacity>
+            ),
           }}
         />
         <Stack.Screen
-          name="Novo usuário"
-          component={Register}
+          name="Sign Up"
+          component={SignUp}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="Sign In"
+          component={SignIn}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

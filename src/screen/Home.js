@@ -1,5 +1,5 @@
 // Core
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View, ScrollView, ImageBackground } from 'react-native';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
