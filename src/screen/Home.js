@@ -1,6 +1,9 @@
 // Core
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, ImageBackground } from 'react-native';
+import { useNavigation  } from '@react-navigation/native';
+
+// Icons
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -10,8 +13,39 @@ import CardList from '../components/CardList';
 // Mock
 import { list } from '../mock';
 
-const Home = () => {
+// Firebase
+import { signOut } from 'firebase/auth';
+
+// Firebase Config
+import { auth } from "../../firebaseConfig";
+
+// Async Storage
+import AsyncStorage from '@react-native-community/async-storage';
+
+// This line is used to prevent yellow errors caused by Firebase in the application.
+console.disableYellowBox = true;
+
+const Home = ({ isUserlogged }) => {
+  const navigation = useNavigation();
   const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
+
+  const signUserOff = async () => {
+    try {
+      await signOut(auth);
+      AsyncStorage.removeItem('key_email');
+      AsyncStorage.removeItem('key_senha');
+      AsyncStorage.removeItem('key_lastLogin');
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  useEffect(() => {
+    if(!isUserlogged){
+      signUserOff();
+    }
+  }, [isUserlogged])
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>

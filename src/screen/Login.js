@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   Text,
-  Button,
   ImageBackground,
   Alert,
 } from 'react-native';
@@ -15,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ref, get } from 'firebase/database';
 
 // Firebase Config
-import { database } from '../../firebaseConfig';
+import { auth, database } from '../../firebaseConfig';
 
 // Async Storage
 import AsyncStorage from '@react-native-community/async-storage';
@@ -44,9 +43,16 @@ const Login = () => {
   const handleGoHome = async (obj) => {
     const savedEmail = await AsyncStorage.getItem('key_email');
     if (obj.email === savedEmail) {
-      navigation.navigate('Minhas Listas');
+      navigation.navigate('Home');
     } else {
-      Alert.alert('Ops!', 'Este não é o usuário logado', [{ text: 'OK' }]);
+      Alert.alert(
+        'Deseja fazer login?',
+        'Caso já esteja logado com outra conta, você será deslogado imediatamente.',
+        [
+          { text: 'Não', style: 'cancel' },
+          { text: 'Sim', onPress: () => handleLogin() }
+        ]
+      );
     }
   };
 
@@ -81,7 +87,7 @@ const Login = () => {
   useEffect(() => {
     fetchData();
     getLoggedUser();
-  }, []);
+  }, [, auth]);
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
@@ -106,7 +112,6 @@ const Login = () => {
             <Text style={styles.plus}>+</Text>
           </View>
         </TouchableOpacity>
-        <Button title="Login" onPress={handleLogin} />
       </View>
     </ImageBackground>
   );

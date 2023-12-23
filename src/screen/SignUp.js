@@ -10,6 +10,7 @@ import {
   Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { format, parseISO } from 'date-fns';
 
 // Firebase
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -20,6 +21,9 @@ import { auth, database } from "../../firebaseConfig";
 
 // Async Storage
 import AsyncStorage from '@react-native-community/async-storage';
+
+// This line is used to prevent yellow errors caused by Firebase in the application.
+console.disableYellowBox = true;
 
 const SignUp = () => {
 
@@ -52,8 +56,8 @@ const SignUp = () => {
     AsyncStorage.setItem('key_email', email);
     AsyncStorage.setItem('key_senha', senha);
     AsyncStorage.setItem('key_lastLogin', date);
-
-    navigation.navigate('Minhas Listas');
+  
+    navigation.navigate('Home');
   };
 
   const handleClearInputs = () => {

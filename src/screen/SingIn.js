@@ -11,8 +11,18 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+// Firebase
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { ref, update } from 'firebase/database';
+
+// Firebase Config
+import { auth, database } from "../../firebaseConfig";
+
 // Async Storage
 import AsyncStorage from '@react-native-community/async-storage';
+
+// This line is used to prevent yellow errors caused by Firebase in the application.
+console.disableYellowBox = true;
 
 const SignIn = () => {
   const navigation = useNavigation();
@@ -37,26 +47,47 @@ const SignIn = () => {
     }
   };
 
+  const handleLogin = () => {
+    const date = new Date();
+    AsyncStorage.setItem('key_email', email);
+    AsyncStorage.setItem('key_senha', senha);
+    AsyncStorage.setItem('key_lastLogin', date);
+  
+    navigation.navigate('Home');
+  };
+
   // LogIn functions
   const logUserIn = async () => {
     try {
-      const emailStorage = await AsyncStorage.getItem('key_email');
-      const senhaStorage = await AsyncStorage.getItem('key_senha');
-      if(emailStorage === email && senhaStorage === senha){
-        AsyncStorage.setItem('key_lastLogin', date);
-        navigation.navigate('Minhas Listas');
-      } else {
-        Alert.alert(
-            'Erro ao autenticar!',
-            'Usuário e/ou senha incorretos!',
-            [
-              { text: 'OK', onPress: () => console.log('OK Pressed') },
-            ],
-          );
-      }
+      const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+      const user = userCredential.user;
+      const uid_data = user.uid;
+      const lastLoginTime_data = user.metadata.lastSignInTime;
+  
+      updateUserNode(uid_data, lastLoginTime_data);
+      handleLogin();
 
     } catch (error) {
-      console.error('Error fetching data from AsyncStorage:', error);
+      Alert.alert(
+        'Usuário/senha inválidas!',
+        'Por favor, verifique os campos e tente novamente',
+        [
+          { text: 'OK', onPress: () => console.log('OK Pressed') },
+        ],
+      );
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error(errorCode);
+      console.error(errorMessage);
+    }
+  };
+
+  const updateUserNode = async (id, lastLogin) => {
+    try{
+      const userRef = ref(database, `users/${id}`);
+      await update(userRef, { lastlogin: lastLogin });
+    }catch(e){
+      console.error(e);
     }
   };
 

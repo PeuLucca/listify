@@ -1,8 +1,9 @@
 // Core
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer  } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Screens
 import Login from './screen/Login';
@@ -13,11 +14,13 @@ import SignIn from "./screen/SingIn";
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
+  const [isUserlogged, setIsUserLogged] = useState(true);
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
-          name="Listify"
+          name="Login"
           component={Login}
           options={{ 
             headerShown: true,
@@ -25,8 +28,9 @@ const AppNavigator = () => {
            }}
         />
         <Stack.Screen
-          name="Minhas Listas"
-          component={Home}
+          name="Home"
+          // component={Home}
+          children={() => (<Home isUserlogged={isUserlogged} />)}
           options={{
             headerShown: true,
             headerLeft: null,
@@ -36,12 +40,13 @@ const AppNavigator = () => {
             headerRight: () => (
               <TouchableOpacity
                 style={{ marginRight: 10 }}
-                onPress={() => {
-                  // Adicione a lógica de logout aqui
-                  console.log("Logout Pressed");
-                }}
+                onPress={() => setIsUserLogged(false)}
               >
-                <Text>Logout</Text>
+                <MaterialCommunityIcons
+                  name="logout"
+                  size={24}
+                  color="black"
+                />
               </TouchableOpacity>
             ),
           }}
