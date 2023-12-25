@@ -35,6 +35,7 @@ const Home = ({ isUserlogged }) => {
       AsyncStorage.removeItem('key_email');
       AsyncStorage.removeItem('key_senha');
       AsyncStorage.removeItem('key_lastLogin');
+
       navigation.navigate('Login');
     } catch (error) {
       console.error('Error signing out:', error);

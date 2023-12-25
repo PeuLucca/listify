@@ -53,11 +53,12 @@ const SignUp = () => {
 
   const handleLogin = () => {
     const date = new Date();
+    const options = { timeZone: 'America/Sao_Paulo' };
+    const dataHoraBrasil = date.toLocaleString('pt-BR', options);
+
     AsyncStorage.setItem('key_email', email);
     AsyncStorage.setItem('key_senha', senha);
-    AsyncStorage.setItem('key_lastLogin', date);
-  
-    navigation.navigate('Home');
+    AsyncStorage.setItem('key_lastLogin', `${dataHoraBrasil}`);
   };
 
   const handleClearInputs = () => {
@@ -85,13 +86,17 @@ const SignUp = () => {
     }
   };
 
-  const createUserNode = async (id, nome, email, lastLogin) => {
+  const createUserNode = async (id, nome, email) => {
     try{
+      const date = new Date();
+      const options = { timeZone: 'America/Sao_Paulo' };
+      const dataHoraBrasil = date.toLocaleString('pt-BR', options);
+
       const dataRef = ref(database, `users/${id}`);
       const userData = {
         nome,
         email,
-        lastlogin: lastLogin,
+        lastlogin: dataHoraBrasil,
       };
       await set(dataRef, userData);
     }catch(e){

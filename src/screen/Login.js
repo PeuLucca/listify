@@ -7,6 +7,7 @@ import {
   Text,
   ImageBackground,
   Alert,
+  Button
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -87,7 +88,7 @@ const Login = () => {
   useEffect(() => {
     fetchData();
     getLoggedUser();
-  }, [, auth]);
+  }, [, auth, allUsers]);
 
   return (
     <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
@@ -112,6 +113,7 @@ const Login = () => {
             <Text style={styles.plus}>+</Text>
           </View>
         </TouchableOpacity>
+        <Button title="New List" onPress={() => navigation.navigate("New List")} />
       </View>
     </ImageBackground>
   );

@@ -10,6 +10,7 @@ import Login from './screen/Login';
 import Home from './screen/Home';
 import SignUp from './screen/SignUp';
 import SignIn from "./screen/SingIn";
+import NewList from './screen/NewList';
 
 const Stack = createStackNavigator();
 
@@ -29,7 +30,6 @@ const AppNavigator = () => {
         />
         <Stack.Screen
           name="Home"
-          // component={Home}
           children={() => (<Home isUserlogged={isUserlogged} />)}
           options={{
             headerShown: true,
@@ -59,6 +59,11 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Sign In"
           component={SignIn}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="New List"
+          component={NewList}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

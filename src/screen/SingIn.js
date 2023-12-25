@@ -49,9 +49,12 @@ const SignIn = () => {
 
   const handleLogin = () => {
     const date = new Date();
+    const options = { timeZone: 'America/Sao_Paulo' };
+    const dataHoraBrasil = date.toLocaleString('pt-BR', options);
+
     AsyncStorage.setItem('key_email', email);
     AsyncStorage.setItem('key_senha', senha);
-    AsyncStorage.setItem('key_lastLogin', date);
+    AsyncStorage.setItem('key_lastLogin', `${dataHoraBrasil}`);
   
     navigation.navigate('Home');
   };
@@ -62,9 +65,9 @@ const SignIn = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
       const uid_data = user.uid;
-      const lastLoginTime_data = user.metadata.lastSignInTime;
+      // const lastLoginTime_data = user.metadata.lastSignInTime;
   
-      updateUserNode(uid_data, lastLoginTime_data);
+      updateUserNode(uid_data);
       handleLogin();
 
     } catch (error) {
@@ -82,10 +85,14 @@ const SignIn = () => {
     }
   };
 
-  const updateUserNode = async (id, lastLogin) => {
+  const updateUserNode = async (id) => {
     try{
+      const date = new Date();
+      const options = { timeZone: 'America/Sao_Paulo' };
+      const dataHoraBrasil = date.toLocaleString('pt-BR', options);
+
       const userRef = ref(database, `users/${id}`);
-      await update(userRef, { lastlogin: lastLogin });
+      await update(userRef, { lastlogin: dataHoraBrasil });
     }catch(e){
       console.error(e);
     }
