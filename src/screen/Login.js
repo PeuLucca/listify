@@ -112,6 +112,7 @@ const Login = () => {
           <View>
             <Text style={styles.plus}>+</Text>
           </View>
+          <Text style={{ fontSize: 15, color: "gray" }}>Novo usuário</Text>
         </TouchableOpacity>
         <Button title="New List" onPress={() => navigation.navigate("New List")} />
       </View>
