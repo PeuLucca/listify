@@ -1,7 +1,7 @@
 // Core
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, ImageBackground } from 'react-native';
-import { useNavigation  } from '@react-navigation/native';
+import React, { useEffect } from 'react';
+import { StyleSheet, View, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 // Icons
 import ActionButton from 'react-native-action-button';
@@ -27,7 +27,6 @@ console.disableYellowBox = true;
 
 const Home = ({ isUserlogged }) => {
   const navigation = useNavigation();
-  const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
 
   const signUserOff = async () => {
     try {
@@ -49,8 +48,7 @@ const Home = ({ isUserlogged }) => {
   }, [isUserlogged])
 
   return (
-    <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-      <View style={styles.container}>
+    <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
           {list.map((item) => (
             <CardList
@@ -82,7 +80,6 @@ const Home = ({ isUserlogged }) => {
           </ActionButton.Item>
         </ActionButton>
       </View>
-    </ImageBackground>
   );
 };
 
@@ -94,15 +91,6 @@ const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     paddingVertical: 10,
-  },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
-  listItem: {
-    padding: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'lightgray',
   },
   actionButtonIcon: {
     fontSize: 20,

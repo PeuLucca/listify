@@ -6,7 +6,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ImageBackground,
   Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -26,7 +25,6 @@ console.disableYellowBox = true;
 
 const SignIn = () => {
   const navigation = useNavigation();
-  const backgroundImage = { uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU' };
 
   // Form
   const [email, setEmail] = useState("");
@@ -99,8 +97,7 @@ const SignIn = () => {
   };
 
   return (
-    <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-      <View style={styles.container}>
+    <View style={styles.container}>
         <Text style={styles.title}>Log In</Text>
         <View style={styles.form}>
           <TextInput
@@ -122,7 +119,6 @@ const SignIn = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </ImageBackground>
   );
 };
 
@@ -131,11 +127,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-  },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-    justifyContent: 'center',
   },
   form: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',

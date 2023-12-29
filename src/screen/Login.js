@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   Text,
-  ImageBackground,
   Alert,
   Button
 } from 'react-native';
@@ -24,10 +23,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 console.disableYellowBox = true;
 
 const Login = () => {
-  const backgroundImage = {
-    uri:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU',
-  };
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [allUsers, setAllUsers] = useState([]);
@@ -91,8 +86,7 @@ const Login = () => {
   }, [, auth, allUsers]);
 
   return (
-    <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-      <View style={styles.container}>
+    <View style={styles.container}>
         {allUsers.map((user, index) => (
           <TouchableOpacity
             key={index}
@@ -116,7 +110,6 @@ const Login = () => {
         </TouchableOpacity>
         <Button title="New List" onPress={() => navigation.navigate("New List")} />
       </View>
-    </ImageBackground>
   );
 };
 
@@ -127,18 +120,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-    justifyContent: 'center',
-  },
   userBox: {
     width: '90%',
     height: 120,
     marginBottom: 20,
     borderWidth: 2,
     borderColor: 'gray',
-    borderRadius: 25,
+    borderTopLeftRadius: 15,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 50,
     justifyContent: 'center',
     alignItems: 'left',
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -151,7 +141,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'gray',
     borderStyle: 'dashed',
-    borderRadius: 20,
+    borderTopLeftRadius: 15,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.6)',

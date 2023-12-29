@@ -4,9 +4,6 @@ import {
     View,
     TextInput,
     StyleSheet,
-    TouchableOpacity,
-    Text,
-    ImageBackground
 } from 'react-native';
 
 // Components
@@ -14,9 +11,6 @@ import ListItem from "../components/ListItem";
 import Select from "../components/Select";
 
 const NewList = () => {
-    const backgroundImage = {
-        uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhapcw-vU9Nt5hF39XiTpNlvv9R-UpSDLy7r_uqWmW_v76NUQ-W2ZGkpjDy_sCrzFHY_M&usqp=CAU',
-    };
     const [newProduto, setNewProduto] = useState("");
     const [newPrice, setNewPrice] = useState("");
     const [isNewProduct, setIsNewProduct] = useState(false);
@@ -81,7 +75,7 @@ const NewList = () => {
     };
   
     return (
-        <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+        <View>
             <Select
                 options={options}
                 placeholder="Selecionar Produto"
@@ -109,14 +103,8 @@ const NewList = () => {
                         </View>
                     )
                 }
-                <TouchableOpacity style={styles.newUserBox} onPress={() => setIsNewProduct(true)}>
-                    <View>
-                        <Text style={styles.plus}>+</Text>
-                    </View>
-                    <Text style={{ fontSize: 14, color: "gray" }}>Novo Produto</Text>
-                </TouchableOpacity>
             </View>
-        </ImageBackground>
+        </View>
     );
 };
 
@@ -135,10 +123,6 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 15,
         backgroundColor: 'rgba(255, 255, 255, 0.6)',
     },
-    backgroundImage: {
-        flex: 1,
-        resizeMode: 'cover',
-    },
     input: {
         width: "70%",
         fontSize: 15,
@@ -154,20 +138,4 @@ const styles = StyleSheet.create({
         paddingLeft: 20,
         flex: 1,
     },
-    newUserBox: {
-        width: '80%',
-        height: 60,
-        marginTop: 5,
-        borderWidth: 2,
-        borderColor: 'gray',
-        borderStyle: 'dashed',
-        borderRadius: 15,
-        alignItems: 'center',
-        alignSelf: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
-      },
-      plus: {
-        fontSize: 25,
-        color: 'gray',
-      },
 });
