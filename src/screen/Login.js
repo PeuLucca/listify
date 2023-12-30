@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  Button
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -108,7 +107,6 @@ const Login = () => {
           </View>
           <Text style={{ fontSize: 15, color: "gray" }}>Novo usuário</Text>
         </TouchableOpacity>
-        <Button title="New List" onPress={() => navigation.navigate("New List")} />
       </View>
   );
 };

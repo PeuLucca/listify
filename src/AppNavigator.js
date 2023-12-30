@@ -62,7 +62,7 @@ const AppNavigator = () => {
           options={{ headerShown: true }}
         />
         <Stack.Screen
-          name="New List"
+          name="Nova Lista"
           component={NewList}
           options={{ headerShown: true }}
         />

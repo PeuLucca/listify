@@ -67,7 +67,7 @@ const Home = ({ isUserlogged }) => {
           <ActionButton.Item
             buttonColor="#9b59b6"
             title="Nova lista"
-            onPress={() => console.log("notes tapped!")}
+            onPress={() => navigation.navigate("Nova Lista")}
           >
             <Icon name="md-create" style={styles.actionButtonIcon} />
           </ActionButton.Item>
