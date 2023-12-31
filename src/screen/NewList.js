@@ -11,6 +11,9 @@ import {
 import ListItem from "../components/ListItem";
 import Select from "../components/Select";
 
+// This line is used to prevent yellow errors caused by Firebase in the application.
+console.disableYellowBox = true;
+
 const NewList = () => {
     const [newProduto, setNewProduto] = useState("");
     const [newPrice, setNewPrice] = useState("");
@@ -81,11 +84,19 @@ const NewList = () => {
       return (val) => setSelectedItem(val)
     };
 
-    const handleItemToggle = (updatedSelectedItems, isAlreadySelected) => {
+    const onSelectedToggle = (itemId, isAlreadySelected) => {
         // save the updated list here
         // set the remaining items
-        console.log(`Updated Item ${updatedSelectedItems}`);
+        console.log(`Updated Item ${itemId}`);
         console.log(`Is Checked: ${!isAlreadySelected}`);
+    };
+
+    const onDeletedToggle = (itemId) => {
+        // remove itemId from product data variable
+    };
+
+    const onNewProductToggle = (newProduct) => {
+        // add newProduct to data variable
     };
   
     return (
@@ -97,13 +108,50 @@ const NewList = () => {
                 </View>
                 <Text style={styles.orcamento}>Orçamento: R$50,00</Text>
                 <View style={styles.rowTotal}>
-                    <Text style={styles.total}>Total:</Text>
+                    <Text style={styles.total}>Total selecionado:</Text>
+                    <Text style={styles.totalPreco}>R$15,20</Text>
+                </View>
+                <View style={styles.rowTotal}>
+                    <Text style={styles.total}>Total da lista:</Text>
                     <Text style={styles.totalPreco}>R$25,50</Text>
                 </View>
             </View>
 
             <View style={styles.list}>
-                <ListItem data={data} onItemToggle={handleItemToggle} />
+                <Select
+                    options={options}
+                    placeholder="Selecionar Produto"
+                    searchPlaceholder="Pesquisar produto"
+                    onChange={onChange()}
+                    value={selectedItem}
+                />
+                <View>
+                    {
+                        isNewProduct && (
+                            <View style={styles.container}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Novo Produto"
+                                    onChangeText={(text) => setNewProduto(text)}
+                                    value={newProduto}
+                                />
+                                <TextInput
+                                    style={styles.priceInput}
+                                    placeholder="R$"
+                                    keyboardType="numeric"
+                                    onChangeText={(text) => setNewPrice(text)}
+                                    value={newPrice}
+                                />
+                            </View>
+                        )
+                    }
+                </View>
+                <ListItem
+                    data={data}
+                    onSelectedToggle={onSelectedToggle}
+                    onDeletedToggle={onDeletedToggle}
+                    onNewProductToggle={onNewProductToggle}
+                />
             </View>
         </View>
     );
@@ -146,15 +194,13 @@ const styles = StyleSheet.create({
         width: "70%",
         fontSize: 15,
         padding: 9,
-        paddingLeft: 20,
+        paddingLeft: 12,
         marginRight: 10,
+        borderRightWidth: 1,
+        borderColor: 'black',
     },
     priceInput: {
-        borderLeftWidth: 1,
-        borderColor: 'black',
         fontSize: 15,
-        padding: 9,
-        paddingLeft: 20,
         flex: 1,
     },
     row: {

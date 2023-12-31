@@ -8,7 +8,7 @@ const Select = (props) => {
     placeholder,
     options,
     onChange,
-    value
+    value,
   } = props;
 
   return (
@@ -21,6 +21,7 @@ const Select = (props) => {
         value={value}
         onChange={onChange}
         hideInputFilter={false}
+        inputFilterStyle={{ fontSize: 15 }}
       />
     </View>
   );

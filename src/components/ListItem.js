@@ -3,7 +3,7 @@ import { View, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native
 import { FontAwesome5 } from '@expo/vector-icons';
 
 const ListItem = (props) => {
-  const { data, onItemToggle } = props;
+  const { data, onSelectedToggle, onDeletedToggle, onNewProductToggle } = props;
   const [selectedItems, setSelectedItems] = useState([]);
 
   const toggleItemSelection = (itemId) => {
@@ -13,7 +13,7 @@ const ListItem = (props) => {
         ? prevSelectedItems.filter((item) => item !== itemId)
         : [...prevSelectedItems, itemId];
 
-      onItemToggle(itemId, isAlreadySelected);
+      onSelectedToggle(itemId, isAlreadySelected);
       return updatedSelectedItems;
     });
   };
@@ -28,6 +28,7 @@ const ListItem = (props) => {
       <TouchableOpacity
         style={[styles.itemContainer, borderBottomStyle]}
         onPress={() => toggleItemSelection(item.id)}
+        onLongPress={() => onDeletedToggle(item.id)}
       >
         <View style={styles.itemContent}>
           <Text style={isItemSelected ? styles.itemNameSelected : styles.itemName}>

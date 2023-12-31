@@ -1,6 +1,6 @@
 // Core
 import React, { useEffect } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView, LogBox } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // Icons
@@ -22,8 +22,7 @@ import { auth } from "../../firebaseConfig";
 // Async Storage
 import AsyncStorage from '@react-native-community/async-storage';
 
-// This line is used to prevent yellow errors caused by Firebase in the application.
-console.disableYellowBox = true;
+LogBox.ignoreAllLogs();
 
 const Home = ({ isUserlogged }) => {
   const navigation = useNavigation();
