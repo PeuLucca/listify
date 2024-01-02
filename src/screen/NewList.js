@@ -1,241 +1,192 @@
-// Core
 import React, { useState } from "react";
-import {
-    View,
-    TextInput,
-    StyleSheet,
-    Text,
-} from 'react-native';
+import { View, StyleSheet, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 
-// Components
-import ListItem from "../components/ListItem";
-import Select from "../components/Select";
+const NewList = ({ route }) => {
+  const { type } = route.params;
+  const [modalName, setModalName] = useState(false);
+  const [listName, setListName] = useState("");
+  const [date, setDate] = useState("");
 
-// This line is used to prevent yellow errors caused by Firebase in the application.
-console.disableYellowBox = true;
+  // Handle functions
+  const handleSaveListName = () => {
+    const currentDate = new Date();
+    const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
 
-const NewList = () => {
-    const [newProduto, setNewProduto] = useState("");
-    const [newPrice, setNewPrice] = useState("");
-    const [isNewProduct, setIsNewProduct] = useState(false);
-    const [selectedItem, setSelectedItem] = useState({});
-    const options = [
-        {
-            item: 'Arsenal FC',
-            id: 'ARS',
-        },
-        {
-            item: 'Barcelona',
-            id: 'BR',
-        },
-        {
-            item: 'Chelsea FC',
-            id: 'CHE',
-        },
-        {
-            item: 'Everton FC',
-            id: 'EVE',
-        },
-        {
-            item: 'FC Bayern Munich',
-            id: 'FBM',
-        },
-        {
-            item: 'Juventus',
-            id: 'JUVE',
-        },
-        {
-            item: 'Liverpool FC',
-            id: 'LIV',
-        },
-        {
-            item: 'Leicester City FC',
-            id: 'LEI',
-        },
-        {
-            item: 'Manchester United FC',
-            id: 'MUN',
-        },
-        {
-            item: 'Manchester City FC',
-            id: 'MCI',
-        },
-        {
-            item: 'PSG',
-            id: 'PSG',
-        },
-        {
-          item: 'Real Madrid',
-          id: 'RM',
-        },
-        {
-          item: 'Tottenham Hotspur FC',
-          id: 'TOT',
-        },
-    ];
-    const data = [
-        { id: '1', name: 'Item 1', price: '45,00' },
-        { id: '2', name: 'Item 2', price: '5,99' },
-        { id: '3', name: 'Item 3', price: '15,00' },
-        { id: '4', name: 'Item 4', price: '25,00' },
-    ];
+    if (listName === "") {
+      setListName("Nova lista");
+    }
+    setDate(formattedDate);
+    setModalName(false);
 
-    function onChange() {
-      return (val) => setSelectedItem(val)
-    };
+    if(type === 'new'){
+      // create List
+    }else{
+      // update List
+    }
+  };
 
-    const onSelectedToggle = (itemId, isAlreadySelected) => {
-        // save the updated list here
-        // set the remaining items
-        console.log(`Updated Item ${itemId}`);
-        console.log(`Is Checked: ${!isAlreadySelected}`);
-    };
+  const truncateText = (text, maxLength) => {
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
 
-    const onDeletedToggle = (itemId) => {
-        // remove itemId from product data variable
-    };
+  // Firebase functions
 
-    const onNewProductToggle = (newProduct) => {
-        // add newProduct to data variable
-    };
-  
-    return (
-        <View>
-            <View style={styles.infoList}>
-                <View style={styles.row}>
-                    <Text style={styles.name}>Lista semanal - Jaú...</Text>
-                    <Text style={styles.data}>05/02/2024</Text>
-                </View>
-                <Text style={styles.orcamento}>Orçamento: R$50,00</Text>
-                <View style={styles.rowTotal}>
-                    <Text style={styles.total}>Total selecionado:</Text>
-                    <Text style={styles.totalPreco}>R$15,20</Text>
-                </View>
-                <View style={styles.rowTotal}>
-                    <Text style={styles.total}>Total da lista:</Text>
-                    <Text style={styles.totalPreco}>R$25,50</Text>
-                </View>
-            </View>
-
-            <View style={styles.list}>
-                <Select
-                    options={options}
-                    placeholder="Selecionar Produto"
-                    searchPlaceholder="Pesquisar produto"
-                    onChange={onChange()}
-                    value={selectedItem}
-                />
-                <View>
-                    {
-                        isNewProduct && (
-                            <View style={styles.container}>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Novo Produto"
-                                    onChangeText={(text) => setNewProduto(text)}
-                                    value={newProduto}
-                                />
-                                <TextInput
-                                    style={styles.priceInput}
-                                    placeholder="R$"
-                                    keyboardType="numeric"
-                                    onChangeText={(text) => setNewPrice(text)}
-                                    value={newPrice}
-                                />
-                            </View>
-                        )
-                    }
-                </View>
-                <ListItem
-                    data={data}
-                    onSelectedToggle={onSelectedToggle}
-                    onDeletedToggle={onDeletedToggle}
-                    onNewProductToggle={onNewProductToggle}
-                />
-            </View>
+  return (
+    <View style={styles.container}>
+      <View style={styles.infoList}>
+        <View style={styles.row}>
+          <TouchableOpacity onPress={() => setModalName(true)}>
+            <Text style={styles.name}>
+              {listName ? truncateText(listName, 19) : "Nova lista"}
+              <AntDesign name="edit" style={styles.icon} onPress={() => setModalName(true)} />
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.date}>{date ? date : "data de criação"}</Text>
         </View>
-    );
+        <TouchableOpacity>
+          <Text style={styles.budget}>
+            Orçamento
+            <AntDesign name="edit" style={styles.icon} />
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalName}
+        onRequestClose={() => setModalName(false)}
+      >
+        <View style={styles.overlay} />
+            <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                    <Text style={styles.modalTitle}>Preencha os campos abaixo:</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Nome da lista"
+                        value={listName}
+                        onChangeText={(text) => setListName(text)}
+                    />
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={[styles.button, styles.buttonSave]} onPress={handleSaveListName}>
+                            <Text style={styles.buttonText}>Salvar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.button, styles.buttonCancel]} onPress={() => setModalName(false)}>
+                            <Text style={styles.buttonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+      </Modal>
+    </View>
+  );
 };
 
-export default NewList;
-
 const styles = StyleSheet.create({
-    infoList: {
-        backgroundColor: 'white',
-        margin: 25,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: 'black',
-        borderTopLeftRadius: 25,
-        borderTopRightRadius: 25,
+  container: {
+    flex: 1,
+  },
+  infoList: {
+    backgroundColor: 'white',
+    margin: '4%',
+    marginBottom: 0,
+    padding: 20,
+    borderWidth: 0.5,
+    borderColor: 'black',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
+    paddingHorizontal: 30,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
     },
-    list: {
-        backgroundColor: 'white',
-        margin: 25,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: 'black',
-        borderBottomLeftRadius: 25,
-        borderBottomRightRadius: 25,
-    },
-    container: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        margin: 20,
-        borderWidth: 1,
-        borderColor: 'black',
-        borderTopLeftRadius: 15,
-        borderBottomLeftRadius: 15,
-        borderBottomRightRadius: 15,
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    },
-    input: {
-        width: "70%",
-        fontSize: 15,
-        padding: 9,
-        paddingLeft: 12,
-        marginRight: 10,
-        borderRightWidth: 1,
-        borderColor: 'black',
-    },
-    priceInput: {
-        fontSize: 15,
-        flex: 1,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 5,
-    },
-    rowTotal: {
-        flexDirection: 'row',
-    },
-    name: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#222',
-    },
-    data: {
-        fontSize: 15,
-        fontWeight: '400',
-        color: '#222',
-    },
-    orcamento: {
-        fontSize: 17,
-        fontWeight: '400',
-        color: 'green',
-    },
-    total: {
-        fontSize: 17,
-        fontWeight: '400',
-        color: '#222',
-    },
-    totalPreco: {
-        marginLeft: 5,
-        fontSize: 17,
-        fontWeight: '400',
-        color: '#222',
-        textDecorationLine: 'underline'
-    }
+    shadowOpacity: 0.3,
+    shadowRadius: 9,
+    elevation: 8,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: '#222',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  icon: {
+    fontSize: 20,
+    marginLeft: 10,
+  },
+  date: {
+    fontSize: 15,
+    fontWeight: '400',
+    color: '#222',
+  },
+  budget: {
+    fontSize: 18,
+    fontWeight: '400',
+    color: 'green',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '400',
+    marginBottom: 10,
+  },
+  input: {
+    fontSize: 17,
+    padding: 8,
+    borderRadius: 5,
+    borderWidth: 0.5,
+    borderColor: 'black',
+    backgroundColor: 'white',
+    width: '100%',
+    marginBottom: 15,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+  },
+  button: {
+    flex: 1,
+    borderRadius: 5,
+    padding: 8,
+    elevation: 2,
+    margin: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonSave: {
+    backgroundColor: 'green',
+  },
+  buttonCancel: {
+    backgroundColor: 'red',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
 });
+
+export default NewList;
