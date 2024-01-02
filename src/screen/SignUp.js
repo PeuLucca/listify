@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 // Firebase
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -23,6 +24,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 console.disableYellowBox = true;
 
 const SignUp = () => {
+  const navigation = useNavigation();
   // Form
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -45,13 +47,8 @@ const SignUp = () => {
   };
 
   const handleLogin = () => {
-    const date = new Date();
-    const options = { timeZone: 'America/Sao_Paulo' };
-    const dataHoraBrasil = date.toLocaleString('pt-BR', options);
-
     AsyncStorage.setItem('key_email', email);
-    AsyncStorage.setItem('key_senha', senha);
-    AsyncStorage.setItem('key_lastLogin', `${dataHoraBrasil}`);
+    navigation.navigate('Home');
   };
 
   const handleClearInputs = () => {
@@ -69,6 +66,7 @@ const SignUp = () => {
       const email_data = user.email;
       const lastLoginTime_data = user.metadata.lastSignInTime;
   
+      AsyncStorage.setItem('key_user_uid', uid_data);
       createUserNode(uid_data, nome, email_data, lastLoginTime_data);
       handleLogin();
     } catch (error) {

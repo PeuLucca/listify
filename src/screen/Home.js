@@ -31,8 +31,7 @@ const Home = ({ isUserlogged }) => {
     try {
       await signOut(auth);
       AsyncStorage.removeItem('key_email');
-      AsyncStorage.removeItem('key_senha');
-      AsyncStorage.removeItem('key_lastLogin');
+      AsyncStorage.removeItem('key_user_uid');
 
       navigation.navigate('Login');
     } catch (error) {
@@ -41,7 +40,8 @@ const Home = ({ isUserlogged }) => {
   };
 
   useEffect(() => {
-    if(!isUserlogged){
+    console.log(isUserlogged.logged);
+    if(!isUserlogged.logged && !isUserlogged.newUser){
       signUserOff();
     }
   }, [isUserlogged])
@@ -65,14 +65,14 @@ const Home = ({ isUserlogged }) => {
         <ActionButton buttonColor="#004E00">
           <ActionButton.Item
             buttonColor="#9b59b6"
-            title="Nova lista"
-            onPress={() => navigation.navigate("Nova Lista", { type: 'new' })}
+            title="Criar lista"
+            onPress={() => navigation.navigate("Nova Lista")}
           >
             <Icon name="md-create" style={styles.actionButtonIcon} />
           </ActionButton.Item>
           <ActionButton.Item
             buttonColor="#3498db"
-            title="Cadastrar produto"
+            title="Criar produto"
             onPress={() => {}}
           >
             <Icon name="md-cart" style={styles.actionButtonIcon} />

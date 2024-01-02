@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -42,7 +43,7 @@ const Login = () => {
     } else {
       Alert.alert(
         'Deseja fazer login?',
-        'Caso já esteja logado com outra conta, você será deslogado imediatamente.',
+        'Caso já esteja logado com outra conta, você será deslogado!',
         [
           { text: 'Não', style: 'cancel' },
           { text: 'Sim', onPress: () => handleLogin() }
@@ -85,29 +86,31 @@ const Login = () => {
   }, [, auth, allUsers]);
 
   return (
-    <View style={styles.container}>
-        {allUsers.map((user, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.userBox}
-            onPress={() => handleGoHome(user)}
-          >
-            <View
-              style={[styles.statusIndicator, { backgroundColor: user.email === email ? '#55CE63' : '#FFBC34' }]}
-            />
+    <ScrollView>
+      <View style={styles.container}>
+          {allUsers.map((user, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.userBox}
+              onPress={() => handleGoHome(user)}
+            >
+              <View
+                style={[styles.statusIndicator, { backgroundColor: user.email === email ? '#55CE63' : '#FFBC34' }]}
+              />
 
-            <Text style={styles.userName}>{user.nome}</Text>
-            <Text style={styles.userEmail}>{user.email}</Text>
-            <Text style={styles.lastLogin}>Último Login: {user.lastlogin}</Text>
+              <Text style={styles.userName}>{user.nome}</Text>
+              <Text style={styles.userEmail}>{user.email}</Text>
+              <Text style={styles.lastLogin}>Último Login: {user.lastlogin}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity style={styles.newUserBox} onPress={handleNewuser}>
+            <View>
+              <Text style={styles.plus}>+</Text>
+            </View>
+            <Text style={{ fontSize: 15, color: "gray" }}>Novo usuário</Text>
           </TouchableOpacity>
-        ))}
-        <TouchableOpacity style={styles.newUserBox} onPress={handleNewuser}>
-          <View>
-            <Text style={styles.plus}>+</Text>
-          </View>
-          <Text style={{ fontSize: 15, color: "gray" }}>Novo usuário</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </ScrollView>
   );
 };
 
@@ -117,6 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginTop: 50
   },
   userBox: {
     width: '90%',

@@ -1,11 +1,36 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+// Core
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  Text,
+  Modal,
+  TextInput,
+  TouchableOpacity,
+  FlatList
+} from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 
-const NewList = ({ route }) => {
-  const { type } = route.params;
+// Async Storage
+import AsyncStorage from '@react-native-community/async-storage';
+
+// Firebase
+import { ref, set, push } from 'firebase/database';
+
+// Firebase Config
+import { database } from "../../firebaseConfig";
+
+const NewList = () => {
+  const [userId, setUserId] = useState("");
   const [modalName, setModalName] = useState(false);
+  const [modalBudget, setModalBudget] = useState(false);
+  const [allProducts, setAllProducts] = useState([]);
+  const [itemSelected, setItemSelected] = useState([]);
+
+  // Form
   const [listName, setListName] = useState("");
+  const [orcamento, setOrcamento] = useState("");
   const [date, setDate] = useState("");
 
   // Handle functions
@@ -19,18 +44,99 @@ const NewList = ({ route }) => {
     setDate(formattedDate);
     setModalName(false);
 
-    if(type === 'new'){
-      // create List
-    }else{
-      // update List
-    }
+    createNodeList(formattedDate);
+  };
+
+  const handleSaveBudget = () => {
+    setModalBudget(false);
+  };
+
+  const getUserData = async () => {
+    const currentUserId = await AsyncStorage.getItem('key_user_uid');
+    setUserId(currentUserId);
   };
 
   const truncateText = (text, maxLength) => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
 
+  const renderProductItem = ({ item, index }) => {
+    const isLastItem = index === allProducts.length - 1;
+  
+    return (
+      <TouchableOpacity
+        style={[styles.productList, isLastItem && styles.lastProductItem]}
+        onPress={() => handleProductClick(index)}
+      >
+        <View style={{ width: '50%' }}>
+          <Text style={styles.item}>{item.name}</Text>
+        </View>
+        <FontAwesome5
+          name={itemSelected.includes(index) ? 'dot-circle' : 'circle'}
+          size={22}
+          color="#888"
+        />
+      </TouchableOpacity>
+    );
+  };
+
+  const handleProductClick = (index) => {
+    // Clone the existing array to avoid mutating state directly
+    const updatedSelection = [...itemSelected];
+
+    // Toggle the selection status of the clicked item
+    if (updatedSelection.includes(index)) {
+      // Item is selected, remove it from the selection array
+      updatedSelection.splice(updatedSelection.indexOf(index), 1);
+    } else {
+      // Item is not selected, add it to the selection array
+      updatedSelection.push(index);
+    }
+
+    // Update the state with the new selection array
+    setItemSelected(updatedSelection);
+  };
+
+  const renderFooter = () => ( // criar novo produto
+    <TouchableOpacity>
+      <View style={styles.addMore}>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: '400',
+            color: '#363636',
+            textAlign: 'center'
+          }}
+        >
+          Adicionar produto...
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   // Firebase functions
+  const createNodeList = async (formattedDate) => {
+    try{
+      const dataRef = ref(database, `lists/${userId}`);
+
+      // Gera um ID único para a lista
+      const newListRef = push(dataRef);
+
+      const listData = {
+        produtos: [],
+        nome: listName,
+        data: formattedDate,
+        orcamento: ""
+      };
+      await set(newListRef, listData);
+    }catch(e){
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    getUserData();
+  }, [])
 
   return (
     <View style={styles.container}>
@@ -44,12 +150,24 @@ const NewList = ({ route }) => {
           </TouchableOpacity>
           <Text style={styles.date}>{date ? date : "data de criação"}</Text>
         </View>
-        <TouchableOpacity>
-          <Text style={styles.budget}>
-            Orçamento
-            <AntDesign name="edit" style={styles.icon} />
-          </Text>
-        </TouchableOpacity>
+        {
+          listName && (
+            <TouchableOpacity onPress={() => setModalBudget(true)}>
+              <Text style={styles.budget}>
+                Orçamento: {orcamento ? `R$ ${orcamento}` : ""}
+                <AntDesign name="edit" style={styles.icon} />
+              </Text>
+            </TouchableOpacity>
+          )
+        }
+      </View>
+
+      <View style={styles.products}>
+        <FlatList
+          data={allProducts}
+          renderItem={renderProductItem}
+          ListFooterComponent={renderFooter}
+        />
       </View>
 
       <Modal
@@ -79,6 +197,40 @@ const NewList = ({ route }) => {
                 </View>
             </View>
       </Modal>
+      
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalBudget}
+        onRequestClose={() => setModalBudget(false)}
+      >
+        <View style={styles.overlay} />
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Preencha os campos abaixo:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="R$"
+              value={orcamento}
+              onChangeText={(text) => setOrcamento(text)}
+            />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonSave]}
+                onPress={handleSaveBudget}
+              >
+                <Text style={styles.buttonText}>Salvar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonCancel]}
+                onPress={() => setModalBudget(false)}
+              >
+                <Text style={styles.buttonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -96,6 +248,46 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+  },
+  selectedProducts: {
+    backgroundColor: 'white',
+    margin: '4%',
+    marginBottom: 0,
+    padding: 20,
+    borderWidth: 0.5,
+    borderColor: 'black',
+    borderRadius: 8
+  },
+  productList: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  addMore: {
+    padding: 7,
+    borderTopWidth: 0.8,
+    borderTopColor: '#ccc',
+  },
+  lastProductItem: {
+    padding: 10,
+    borderBottomWidth: 0,
+  },
+  item: {
+    fontSize: 16,
+    fontWeight: '400'
+  },
+  products: {
+    backgroundColor: 'white',
+    margin: '4%',
+    marginBottom: 0,
+    padding: 20,
+    borderWidth: 0.5,
+    borderColor: 'black',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   centeredView: {
     flex: 1,

@@ -46,13 +46,7 @@ const SignIn = () => {
   };
 
   const handleLogin = () => {
-    const date = new Date();
-    const options = { timeZone: 'America/Sao_Paulo' };
-    const dataHoraBrasil = date.toLocaleString('pt-BR', options);
-
     AsyncStorage.setItem('key_email', email);
-    AsyncStorage.setItem('key_senha', senha);
-    AsyncStorage.setItem('key_lastLogin', `${dataHoraBrasil}`);
   
     navigation.navigate('Home');
   };
@@ -63,8 +57,8 @@ const SignIn = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
       const uid_data = user.uid;
-      // const lastLoginTime_data = user.metadata.lastSignInTime;
-  
+
+      AsyncStorage.setItem('key_user_uid', uid_data);
       updateUserNode(uid_data);
       handleLogin();
 

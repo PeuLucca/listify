@@ -59,7 +59,7 @@ const CardList = (props) => {
   }, []);
 
   return (
-    <Animatable.View key={id} style={styles.container} animation="fadeIn" duration={1500} delay={90}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{truncateText(name, 26)}</Text>
         <TouchableOpacity onPress={toggleDropdown}>
@@ -76,7 +76,7 @@ const CardList = (props) => {
           <Text style={styles.bottomText}>- {purchasePlace} (sugestão)</Text>
         </>
       )}
-    </Animatable.View>
+    </View>
   );
 };
 

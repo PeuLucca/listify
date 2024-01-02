@@ -15,7 +15,7 @@ import NewList from './screen/NewList';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  const [isUserlogged, setIsUserLogged] = useState(true);
+  const [isUserlogged, setIsUserLogged] = useState({ logged: true, newUser: true });
 
   return (
     <NavigationContainer>
@@ -40,7 +40,7 @@ const AppNavigator = () => {
             headerRight: () => (
               <TouchableOpacity
                 style={{ marginRight: 10 }}
-                onPress={() => setIsUserLogged(false)}
+                onPress={() => setIsUserLogged({logged: false, newUser: false})}
               >
                 <MaterialCommunityIcons
                   name="logout"
