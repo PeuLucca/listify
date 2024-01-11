@@ -10,7 +10,7 @@ const CardList = (props) => {
     id,
     name,
     list,
-    purchasePlace,
+    dataText,
     percentage
   } = props;
 
@@ -24,12 +24,14 @@ const CardList = (props) => {
     let done = 0;
     let total = 0;
 
-    listArray.forEach((item) => {
-      if (item.status) {
-        done++;
-      }
-      total++;
-    });
+    if(list){
+      listArray.forEach((item) => {
+        if (item.status) {
+          done++;
+        }
+        total++;
+      });
+    }
 
     setListProducts({ done, total });
   };
@@ -61,7 +63,7 @@ const CardList = (props) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{truncateText(name, 26)}</Text>
+        <Text style={styles.title}>{name ? truncateText(name, 26) : "Nova lista"}</Text>
         <TouchableOpacity onPress={toggleDropdown}>
           <AntDesign name={isDropdownOpen ? 'up' : 'down'} size={25} color="#555" />
         </TouchableOpacity>
@@ -73,7 +75,7 @@ const CardList = (props) => {
       {isDropdownOpen && (
         <>
           <Text style={styles.bottomText}>- {listProducts.done} de {listProducts.total} produtos restantes</Text>
-          <Text style={styles.bottomText}>- {purchasePlace} (sugestão)</Text>
+          <Text style={styles.bottomText}>- {dataText}</Text>
         </>
       )}
     </View>
@@ -119,7 +121,7 @@ const styles = StyleSheet.create({
   bottomText: {
     marginLeft: 10,
     marginTop: 5,
-    fontSize: 12,
+    fontSize: 12.5,
     color: '#666',
   },
 });

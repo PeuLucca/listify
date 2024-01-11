@@ -10,6 +10,9 @@ import {
   FlatList,
   Alert
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+// Expo
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 
@@ -17,18 +20,24 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
 
 // Firebase
-import { ref, get, set, push } from 'firebase/database';
+import { ref, get, set, push, update } from 'firebase/database';
 
 // Firebase Config
 import { database } from "../../firebaseConfig";
 
 const NewList = () => {
+  const navigation = useNavigation();
   const [userId, setUserId] = useState("");
+  const [listObj, setListObj] = useState(null);
   const [modalName, setModalName] = useState(false);
   const [modalBudget, setModalBudget] = useState(false);
   const [modalProduct, setModalProduct] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
   const [itemSelected, setItemSelected] = useState([]);
+  const [selectedListItem, setSelectedListItem] = useState([]);
+  const [isUpdate, setIsUpdate] = useState(false);
+  const [isUpdateList, setIsUpdateList] = useState(false);
+  const [updateObj, setUpdateObj] = useState(null);
 
   // Form
   const [listName, setListName] = useState("");
@@ -47,9 +56,15 @@ const NewList = () => {
       setListName("Nova lista");
     }
     setDate(formattedDate);
-    setModalName(false);
 
-    createNodeList(formattedDate);
+    if(isUpdateList){
+      updateNodeList();
+    }else{
+      createNodeList(formattedDate);
+      setIsUpdateList(true);
+    }
+
+    setModalName(false);
   };
 
   const handleSaveBudget = () => {
@@ -109,7 +124,8 @@ const NewList = () => {
     return (
       <TouchableOpacity
         style={[styles.productList, isLastItem && styles.lastProductItem]}
-        onPress={() => handleProductClick(index)}
+        onPress={() => handleProductClick(item, index)}
+        onLongPress={() => handleUpdate(item)}
       >
         <View style={{ width: '50%' }}>
           <Text style={styles.item}>
@@ -125,9 +141,10 @@ const NewList = () => {
     );
   };
 
-  const handleProductClick = (index) => {
+  const handleProductClick = (item, index) => {
     // Clone the existing array to avoid mutating state directly
     const updatedSelection = [...itemSelected];
+    const updatedItemSelected = [...selectedListItem];
 
     // Toggle the selection status of the clicked item
     if (updatedSelection.includes(index)) {
@@ -136,10 +153,21 @@ const NewList = () => {
     } else {
       // Item is not selected, add it to the selection array
       updatedSelection.push(index);
+      updatedItemSelected.push({ id: item.id, status: false });
     }
 
-    // Update the state with the new selection array
     setItemSelected(updatedSelection);
+    setSelectedListItem(updatedItemSelected);
+  };
+
+  const handleUpdate = (item) => {
+    setModalProduct(true);
+    setNome(item.nome);
+    setPreco(item.preco);
+    setLocalCompra(item.local);
+
+    setUpdateObj(item);
+    setIsUpdate(true);
   };
 
   const handleSaveProduct = () => {
@@ -152,7 +180,11 @@ const NewList = () => {
         ],
       );
     }else{
-      createNewProduct();
+      if(isUpdate){
+        updateProduct();
+      }else{
+        createNewProduct();
+      }
       setModalProduct(false);
       setNome("");
       setPreco("");
@@ -192,7 +224,29 @@ const NewList = () => {
         data: formattedDate,
         orcamento: ""
       };
+
+      setListObj({
+        listId: newListRef,
+        nome: listName,
+        data: formattedDate,
+        orcamento: ""
+      })
       await set(newListRef, listData);
+    }catch(e){
+      console.error(e);
+    }
+  };
+
+  const updateNodeList = async () => {
+    try{
+      const listString = `${listObj.listId}`;
+      const listId = listString.split('/').pop();
+      const dataRef = ref(database, `lists/${userId}/${listId}`);
+
+      const listData = {
+        nome: listName,
+      };
+      await update(dataRef, listData);
     }catch(e){
       console.error(e);
     }
@@ -210,9 +264,61 @@ const NewList = () => {
         preco: preco,
         local: localCompra ?? null
       };
+
       await set(newProductRef, productData);
     }catch(e){
       console.error(e);
+    }
+  };
+
+  const updateProduct = async () => {
+    try{
+      const dataRef = ref(database, `product/${userId}/${updateObj.id}`);
+      const updatedProductData = {
+        nome: nome,
+        preco: preco,
+        local: localCompra,
+      };
+
+      await update(dataRef, updatedProductData);
+    }catch(e){
+      console.error(e);
+    }
+  };
+
+  const updateList = async () => {
+    try{
+      if(isUpdateList){
+        const listString = `${listObj.listId}`;
+        const listId = listString.split('/').pop();
+        const dataRef = ref(database, `lists/${userId}/${listId}`);
+        const updatedList = {
+          produtos: selectedListItem,
+          nome: listObj.nome,
+          data: listObj.data,
+          orcamento: listObj.orcamento
+        };
+  
+        await update(dataRef, updatedList);
+        navigation.navigate('Home');
+      }else{
+        const dataRef = ref(database, `lists/${userId}`);
+        const currentDate = new Date();
+        const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+
+        // Gera um ID único para a lista
+        const newListRef = push(dataRef);
+  
+        const listData = {
+          produtos: selectedListItem,
+          data: formattedDate,
+        };
+
+        await set(newListRef, listData);
+        navigation.navigate('Home');
+      }
+    }catch(error){
+      console.error(error);
     }
   };
 
@@ -255,6 +361,7 @@ const NewList = () => {
 
       <TouchableOpacity
         style={styles.saveButton}
+        onPress={updateList}
       >
         <Text style={styles.saveButtonText}>
           Criar  <FontAwesome5 name="save" style={{ color: 'white', fontSize: 16 }} />
@@ -279,7 +386,11 @@ const NewList = () => {
                     />
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity style={[styles.button, styles.buttonSave]} onPress={handleSaveListName}>
-                            <Text style={styles.buttonText}>Salvar</Text>
+                            <Text style={styles.buttonText}>
+                              {
+                                isUpdateList ? "Atualizar" : "Salvar"
+                              }
+                            </Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.button, styles.buttonCancel]} onPress={() => setModalName(false)}>
                             <Text style={styles.buttonText}>Cancelar</Text>
@@ -359,7 +470,11 @@ const NewList = () => {
                 style={[styles.button, styles.buttonSave]}
                 onPress={handleSaveProduct}
               >
-                <Text style={styles.buttonText}>Salvar</Text>
+                <Text style={styles.buttonText}>
+                  {
+                    isUpdate ? "Atualizar" : "Salvar"
+                  }
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonCancel]}

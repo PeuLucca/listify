@@ -1,6 +1,6 @@
 // Core
-import React, { useEffect } from 'react';
-import { StyleSheet, View, ScrollView, LogBox } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, ScrollView, LogBox, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // Icons
@@ -10,14 +10,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 // Components
 import CardList from '../components/CardList';
 
-// Mock
-import { list } from '../mock';
-
 // Firebase
 import { signOut } from 'firebase/auth';
+import { ref, get } from 'firebase/database';
 
 // Firebase Config
-import { auth } from "../../firebaseConfig";
+import { database, auth } from "../../firebaseConfig";
 
 // Async Storage
 import AsyncStorage from '@react-native-community/async-storage';
@@ -25,6 +23,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 LogBox.ignoreAllLogs();
 
 const Home = ({ isUserlogged }) => {
+  const [allListsObj, setAllListsObj] = useState([]);
   const navigation = useNavigation();
 
   const signUserOff = async () => {
@@ -39,8 +38,74 @@ const Home = ({ isUserlogged }) => {
     }
   };
 
+  const getAllLists = async () => {
+    try {
+      const usersRef = ref(database, 'lists');
+      const snapshot = await get(usersRef);
+  
+      if (snapshot.exists()) {
+        const allListsData = snapshot.val();
+        const allLists = Object.values(allListsData);
+  
+        const novoArray = [];
+  
+        for (const objeto of allLists) {
+          for (const chave in objeto) {
+            const informacoesDoItem = objeto[chave];
+  
+            let percentage = 0;
+            if (informacoesDoItem.produtos) {
+              let produtos = informacoesDoItem.produtos;
+              let percentageArray = [];
+  
+              // Loop para percorrer cada produto
+              for (let i = 0; i < produtos.length; i++) {
+                percentageArray.push(produtos[i].status);
+              }
+  
+              let totalItems = percentageArray.length;
+              let trueCount = percentageArray.filter((item) => item === true).length;
+  
+              if (totalItems > 0) {
+                percentage = trueCount / totalItems;
+              }
+            }
+  
+            const novoObjeto = {
+              id: chave,
+              data: informacoesDoItem.data,
+              nome: informacoesDoItem.nome,
+              produtos: informacoesDoItem.produtos,
+              percentage: percentage,
+            };
+  
+            novoArray.push(novoObjeto);
+          }
+        }
+
+        setAllListsObj(novoArray);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
-    console.log(isUserlogged.logged);
+    getAllLists();
+  }, [])
+
+  useEffect(() => {
+    const focusListener = navigation.addListener('focus', () => {
+      getAllLists();
+    });
+
+    // Cleanup do listener ao desmontar o componente
+    return () => {
+      focusListener();
+    };
+  }, [navigation]);
+
+  useEffect(() => {
     if(!isUserlogged.logged && !isUserlogged.newUser){
       signUserOff();
     }
@@ -49,16 +114,20 @@ const Home = ({ isUserlogged }) => {
   return (
     <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-          {list.map((item) => (
-            <CardList
-              key={item.id}
-              id={item.id}
-              name={item.name}
-              list={item.list}
-              purchasePlace={item.purchasePlace}
-              percentage={item.percentage}
-            />
-          ))}
+          {
+            allListsObj.length !== 0 ? (
+              allListsObj.map((item) => (
+                <CardList
+                  key={item.id}
+                  id={item.id}
+                  name={item.nome}
+                  list={item.produtos}
+                  dataText={item.data}
+                  percentage={item.percentage}
+                />
+              ))
+            ): <Text style={{ fontSize: 15, textAlign: 'center', marginTop: '70%' }}>Nenhuma lista criada</Text>
+          }
         </ScrollView>
 
         {/* Action Button */}
