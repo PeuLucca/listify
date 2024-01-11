@@ -7,7 +7,8 @@ import {
   Modal,
   TextInput,
   TouchableOpacity,
-  FlatList
+  FlatList,
+  Alert
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -16,7 +17,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
 
 // Firebase
-import { ref, set, push } from 'firebase/database';
+import { ref, get, set, push } from 'firebase/database';
 
 // Firebase Config
 import { database } from "../../firebaseConfig";
@@ -25,6 +26,7 @@ const NewList = () => {
   const [userId, setUserId] = useState("");
   const [modalName, setModalName] = useState(false);
   const [modalBudget, setModalBudget] = useState(false);
+  const [modalProduct, setModalProduct] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
   const [itemSelected, setItemSelected] = useState([]);
 
@@ -32,6 +34,9 @@ const NewList = () => {
   const [listName, setListName] = useState("");
   const [orcamento, setOrcamento] = useState("");
   const [date, setDate] = useState("");
+  const [nome, setNome] = useState("");
+  const [preco, setPreco] = useState("");
+  const [localCompra, setLocalCompra] = useState("");
 
   // Handle functions
   const handleSaveListName = () => {
@@ -56,8 +61,46 @@ const NewList = () => {
     setUserId(currentUserId);
   };
 
+  const getProductData = async () => {
+    try {
+      const usersRef = ref(database, 'product');
+      const snapshot = await get(usersRef);
+
+      if (snapshot.exists()) {
+        const allProductsData = snapshot.val();
+        const allproducts = Object.values(allProductsData);
+
+        const novoArray = [];
+
+        for (const objeto of allproducts) {
+          for (const chave in objeto) {
+            const informacoesDoItem = objeto[chave];
+
+            const novoObjeto = {
+              id: chave,
+              local: informacoesDoItem.local,
+              nome: informacoesDoItem.nome,
+              preco: informacoesDoItem.preco,
+            };
+
+            novoArray.push(novoObjeto);
+          }
+        }
+        setAllProducts(novoArray);
+      } else {
+        console.log('Nenhum produto encontrado');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const truncateText = (text, maxLength) => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
+  const capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
   const renderProductItem = ({ item, index }) => {
@@ -69,7 +112,9 @@ const NewList = () => {
         onPress={() => handleProductClick(index)}
       >
         <View style={{ width: '50%' }}>
-          <Text style={styles.item}>{item.name}</Text>
+          <Text style={styles.item}>
+            {capitalizeFirstLetter(item.nome)}
+          </Text>
         </View>
         <FontAwesome5
           name={itemSelected.includes(index) ? 'dot-circle' : 'circle'}
@@ -97,18 +142,37 @@ const NewList = () => {
     setItemSelected(updatedSelection);
   };
 
-  const renderFooter = () => ( // criar novo produto
-    <TouchableOpacity>
+  const handleSaveProduct = () => {
+    if(nome === "" || preco === ""){
+      Alert.alert(
+        'Atenção!',
+        'Preencha os campos obrigatórios',
+        [
+          { text: 'OK' },
+        ],
+      );
+    }else{
+      createNewProduct();
+      setModalProduct(false);
+      setNome("");
+      setPreco("");
+      setLocalCompra("");
+      getProductData();
+    }
+  };
+
+  const renderFooter = () => (
+    <TouchableOpacity onPress={() => setModalProduct(true)}>
       <View style={styles.addMore}>
         <Text
           style={{
             fontSize: 16,
             fontWeight: '400',
-            color: '#363636',
+            color: 'gray',
             textAlign: 'center'
           }}
         >
-          Adicionar produto...
+          Criar novo produto...
         </Text>
       </View>
     </TouchableOpacity>
@@ -134,8 +198,27 @@ const NewList = () => {
     }
   };
 
+  const createNewProduct = async () => {
+    try{
+      const dataRef = ref(database, `product/${userId}`);
+
+      // Gera um ID único para o produto
+      const newProductRef = push(dataRef);
+
+      const productData = {
+        nome: nome,
+        preco: preco,
+        local: localCompra ?? null
+      };
+      await set(newProductRef, productData);
+    }catch(e){
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     getUserData();
+    getProductData();
   }, [])
 
   return (
@@ -169,6 +252,14 @@ const NewList = () => {
           ListFooterComponent={renderFooter}
         />
       </View>
+
+      <TouchableOpacity
+        style={styles.saveButton}
+      >
+        <Text style={styles.saveButtonText}>
+          Criar  <FontAwesome5 name="save" style={{ color: 'white', fontSize: 16 }} />
+        </Text>
+      </TouchableOpacity>
 
       <Modal
         animationType="slide"
@@ -231,6 +322,55 @@ const NewList = () => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalProduct}
+        onRequestClose={() => setModalProduct(false)}
+      >
+        <View style={styles.overlay} />
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Preencha os campos abaixo:</Text>
+            <View style={{ flexDirection: 'row' }}>
+              <TextInput
+                style={[styles.input, { flex: 2, marginRight: 5 }]}
+                placeholder="Nome"
+                value={nome}
+                onChangeText={(text) => setNome(text)}
+              />
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="R$"
+                value={preco}
+                onChangeText={(text) => setPreco(text)}
+                keyboardType="numeric"
+              />
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Local de compra (não obrigatório)"
+              value={localCompra}
+              onChangeText={(text) => setLocalCompra(text)}
+            />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonSave]}
+                onPress={handleSaveProduct}
+              >
+                <Text style={styles.buttonText}>Salvar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonCancel]}
+                onPress={() => setModalProduct(false)}
+              >
+                <Text style={styles.buttonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -277,7 +417,7 @@ const styles = StyleSheet.create({
   },
   item: {
     fontSize: 16,
-    fontWeight: '400'
+    fontWeight: '400',
   },
   products: {
     backgroundColor: 'white',
@@ -347,8 +487,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   input: {
-    fontSize: 17,
+    fontSize: 16,
     padding: 8,
+    paddingLeft: 11,
     borderRadius: 5,
     borderWidth: 0.5,
     borderColor: 'black',
@@ -378,6 +519,22 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  saveButton: {
+    margin: '20%',
+    backgroundColor: '#9b59b6',
+    padding: 8,
+    borderBottomRightRadius: 3,
+    borderBottomLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderTopLeftRadius: 10,
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

@@ -83,7 +83,7 @@ const Login = () => {
   useEffect(() => {
     fetchData();
     getLoggedUser();
-  }, [, auth, allUsers]);
+  }, [, auth]);
 
   return (
     <ScrollView>
