@@ -16,6 +16,7 @@
     "@react-native-firebase/auth": "17.4.0",
     "@react-native-firebase/database": "17.4.0",
     "@react-native-firebase/firestore": "^18.7.3",
+    "@react-native-picker/picker": "2.4.10",
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/stack": "^6.3.20",

@@ -9,9 +9,10 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Picker } from "@react-native-picker/picker"
 
 // Expo
 import { AntDesign } from '@expo/vector-icons';
@@ -35,6 +36,7 @@ const NewList = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [itemSelected, setItemSelected] = useState([]);
   const [selectedListItem, setSelectedListItem] = useState([]);
+
   const [isUpdate, setIsUpdate] = useState(false);
   const [isUpdateList, setIsUpdateList] = useState(false);
   const [updateObj, setUpdateObj] = useState(null);
@@ -48,6 +50,7 @@ const NewList = () => {
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
   const [localCompra, setLocalCompra] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   // Handle functions
   const handleSaveListName = () => {
@@ -69,10 +72,6 @@ const NewList = () => {
     setModalName(false);
   };
 
-  const handleSaveBudget = () => {
-    setModalBudget(false);
-  };
-
   const getUserData = async () => {
     const currentUserId = await AsyncStorage.getItem('key_user_uid');
     setUserId(currentUserId);
@@ -83,38 +82,51 @@ const NewList = () => {
       setLoading(true);
       const usersRef = ref(database, 'product');
       const snapshot = await get(usersRef);
-
+  
       if (snapshot.exists()) {
-        const allProductsData = snapshot.val();
-        const allproducts = Object.values(allProductsData);
-
-        const novoArray = [];
-
-        for (const objeto of allproducts) {
-          for (const chave in objeto) {
-            const informacoesDoItem = objeto[chave];
-
-            const novoObjeto = {
-              id: chave,
-              local: informacoesDoItem.local,
-              nome: informacoesDoItem.nome,
-              preco: informacoesDoItem.preco,
-            };
-
-            novoArray.push(novoObjeto);
+        const allProductsArray = [];
+  
+        snapshot.forEach((categoriaSnapshot) => {
+          const produtos = categoriaSnapshot.val();
+  
+          for (const productId in produtos) {
+            const product = produtos[productId];
+            allProductsArray.push({
+              nome: product.nome,
+              categoria: product.categoria,
+              preco: product.preco,
+              local: product.local,
+              id: productId
+            });
           }
-        }
-        setAllProducts(novoArray);
+        });
+  
+        // Ordenar por categoria e, em seguida, por nome
+        allProductsArray.sort((a, b) => {
+          // Organizar por categoria
+          const categoriaA = a.categoria.toLowerCase();
+          const categoriaB = b.categoria.toLowerCase();
+          if (categoriaA < categoriaB) return -1;
+          if (categoriaA > categoriaB) return 1;
+  
+          // Se as categorias forem iguais, organizar por nome
+          const nomeA = a.nome.toLowerCase();
+          const nomeB = b.nome.toLowerCase();
+          return nomeA.localeCompare(nomeB);
+        });
+  
+        setAllProducts(allProductsArray);
       } else {
         console.log('Nenhum produto encontrado');
       }
     } catch (e) {
       console.error(e);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
-
+  
+  
   const truncateText = (text, maxLength) => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
@@ -126,23 +138,36 @@ const NewList = () => {
   const renderProductItem = ({ item, index }) => {
     const isLastItem = index === allProducts.length - 1;
   
+    // Verifica se é o primeiro item da categoria
+    const isFirstItem = index === 0 || (index > 0 && allProducts[index - 1].categoria !== item.categoria);
+  
     return (
-      <TouchableOpacity
-        style={[styles.productList, isLastItem && styles.lastProductItem]}
-        onPress={() => handleProductClick(item, index)}
-        onLongPress={() => handleUpdate(item)}
-      >
-        <View style={{ width: '50%' }}>
-          <Text style={styles.item}>
-            {capitalizeFirstLetter(item.nome)}
-          </Text>
-        </View>
-        <FontAwesome5
-          name={itemSelected.includes(index) ? 'dot-circle' : 'circle'}
-          size={22}
-          color="#888"
-        />
-      </TouchableOpacity>
+      <>
+        {isFirstItem && (
+          <Text style={{
+            fontSize: 18,
+            fontWeight: 'bold',
+            marginTop: 10
+          }}>{capitalizeFirstLetter(item.categoria)}</Text>
+        )}
+  
+        <TouchableOpacity
+          style={[styles.productList, isLastItem && styles.lastProductItem]}
+          onPress={() => handleProductClick(item, index)}
+          onLongPress={() => handleUpdate(item)}
+        >
+          <View style={{ width: '50%' }}>
+            <Text style={styles.item}>
+              {capitalizeFirstLetter(item.nome)}
+            </Text>
+          </View>
+          <FontAwesome5
+            name={itemSelected.includes(index) ? 'dot-circle' : 'circle'}
+            size={22}
+            color="#888"
+          />
+        </TouchableOpacity>
+      </>
     );
   };
 
@@ -169,6 +194,7 @@ const NewList = () => {
     setModalProduct(true);
     setNome(item.nome);
     setPreco(item.preco);
+    setSelectedCategory(item.categoria)
     setLocalCompra(item.local);
 
     setUpdateObj(item);
@@ -193,6 +219,7 @@ const NewList = () => {
       setModalProduct(false);
       setNome("");
       setPreco("");
+      setSelectedCategory("");
       setLocalCompra("");
       getProductData();
     }
@@ -273,6 +300,7 @@ const NewList = () => {
       const productData = {
         nome: nome,
         preco: preco,
+        categoria: selectedCategory,
         local: localCompra ?? null
       };
 
@@ -288,6 +316,7 @@ const NewList = () => {
       const updatedProductData = {
         nome: nome,
         preco: preco,
+        categoria: selectedCategory,
         local: localCompra,
       };
 
@@ -362,7 +391,7 @@ const NewList = () => {
       </View>
 
       <View style={styles.products}>
-        {
+      {
           loading
           ? <ActivityIndicator style={{ marginBottom: 20 }} size="large" color="black" />
           : (
@@ -445,6 +474,29 @@ const NewList = () => {
                 onChangeText={(text) => setPreco(text)}
                 keyboardType="numeric"
               />
+            </View>
+            <View style={{
+              borderWidth: 1,
+              borderColor: '#B2B2B2',
+              borderRadius: 5,
+              height: 50,
+              width: '100%',
+              marginBottom: '5%'
+              }}
+            >
+              <Picker
+                selectedValue={selectedCategory}
+                onValueChange={(itemValue) =>
+                  setSelectedCategory(itemValue)
+                }
+              >
+                <Picker.Item color="gray" label="Selecione a categoria" value="" />
+                <Picker.Item label="Alimentos" value="alimentos" />
+                <Picker.Item label="Produtos de limpeza" value="limpeza" />
+                <Picker.Item label="Beleza e Cuidados Pessoais" value="beleza" />
+                <Picker.Item label="Saúde e Bem-Estar" value="saude" />
+                <Picker.Item label="Outros" value="outros" />
+              </Picker>
             </View>
             <TextInput
               style={styles.input}
