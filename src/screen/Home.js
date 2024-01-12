@@ -1,6 +1,13 @@
 // Core
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ScrollView, LogBox, Text } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  LogBox,
+  Text,
+  ActivityIndicator
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // Icons
@@ -24,6 +31,7 @@ LogBox.ignoreAllLogs();
 
 const Home = ({ isUserlogged }) => {
   const [allListsObj, setAllListsObj] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
   const signUserOff = async () => {
@@ -40,6 +48,7 @@ const Home = ({ isUserlogged }) => {
 
   const getAllLists = async () => {
     try {
+      setLoading(true);
       const usersRef = ref(database, 'lists');
       const snapshot = await get(usersRef);
   
@@ -87,6 +96,8 @@ const Home = ({ isUserlogged }) => {
       }
     } catch (e) {
       console.error(e);
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -115,6 +126,9 @@ const Home = ({ isUserlogged }) => {
     <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
           {
+            loading ? (
+              <ActivityIndicator style={{ marginTop: '70%' }} size="large" color="black" />
+            ) :
             allListsObj.length !== 0 ? (
               allListsObj.map((item) => (
                 <CardList
@@ -126,7 +140,7 @@ const Home = ({ isUserlogged }) => {
                   percentage={item.percentage}
                 />
               ))
-            ): <Text style={{ fontSize: 15, textAlign: 'center', marginTop: '70%' }}>Nenhuma lista criada</Text>
+            ): <Text style={{ fontSize: 15, textAlign: 'center', marginTop: '70%' }}>Nenhuma lista encontrada</Text>
           }
         </ScrollView>
 

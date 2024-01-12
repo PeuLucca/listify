@@ -8,7 +8,8 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -30,7 +31,6 @@ const NewList = () => {
   const [userId, setUserId] = useState("");
   const [listObj, setListObj] = useState(null);
   const [modalName, setModalName] = useState(false);
-  const [modalBudget, setModalBudget] = useState(false);
   const [modalProduct, setModalProduct] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
   const [itemSelected, setItemSelected] = useState([]);
@@ -38,10 +38,12 @@ const NewList = () => {
   const [isUpdate, setIsUpdate] = useState(false);
   const [isUpdateList, setIsUpdateList] = useState(false);
   const [updateObj, setUpdateObj] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingListName, setLoadingListName] = useState(false);
+  const [loadingCreate, setLoadingCreate] = useState(false);
 
   // Form
   const [listName, setListName] = useState("");
-  const [orcamento, setOrcamento] = useState("");
   const [date, setDate] = useState("");
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
@@ -78,6 +80,7 @@ const NewList = () => {
 
   const getProductData = async () => {
     try {
+      setLoading(true);
       const usersRef = ref(database, 'product');
       const snapshot = await get(usersRef);
 
@@ -107,6 +110,8 @@ const NewList = () => {
       }
     } catch (e) {
       console.error(e);
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -213,6 +218,7 @@ const NewList = () => {
   // Firebase functions
   const createNodeList = async (formattedDate) => {
     try{
+      setLoadingListName(true);
       const dataRef = ref(database, `lists/${userId}`);
 
       // Gera um ID único para a lista
@@ -234,11 +240,14 @@ const NewList = () => {
       await set(newListRef, listData);
     }catch(e){
       console.error(e);
+    }finally{
+      setLoadingListName(false);
     }
   };
 
   const updateNodeList = async () => {
     try{
+      setLoadingListName(true);
       const listString = `${listObj.listId}`;
       const listId = listString.split('/').pop();
       const dataRef = ref(database, `lists/${userId}/${listId}`);
@@ -249,6 +258,8 @@ const NewList = () => {
       await update(dataRef, listData);
     }catch(e){
       console.error(e);
+    }finally{
+      setLoadingListName(false);
     }
   };
 
@@ -288,6 +299,7 @@ const NewList = () => {
 
   const updateList = async () => {
     try{
+      setLoadingCreate(true);
       if(isUpdateList){
         const listString = `${listObj.listId}`;
         const listId = listString.split('/').pop();
@@ -319,6 +331,8 @@ const NewList = () => {
       }
     }catch(error){
       console.error(error);
+    }finally{
+      setLoadingCreate(false);
     }
   };
 
@@ -331,32 +345,34 @@ const NewList = () => {
     <View style={styles.container}>
       <View style={styles.infoList}>
         <View style={styles.row}>
-          <TouchableOpacity onPress={() => setModalName(true)}>
-            <Text style={styles.name}>
-              {listName ? truncateText(listName, 19) : "Nova lista"}
-              <AntDesign name="edit" style={styles.icon} onPress={() => setModalName(true)} />
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.date}>{date ? date : "data de criação"}</Text>
+          {loadingListName ? (
+            <ActivityIndicator size="large" color="black" />
+          ) : (
+            <>
+              <TouchableOpacity onPress={() => setModalName(true)}>
+                <Text style={styles.name}>
+                  {listName ? truncateText(listName, 19) : "Nova lista"}
+                  <AntDesign name="edit" style={styles.icon} onPress={() => setModalName(true)} />
+                </Text>
+              </TouchableOpacity>
+              <Text style={styles.date}>{date ? date : "data de criação"}</Text>
+            </>
+          )}
         </View>
-        {
-          listName && (
-            <TouchableOpacity onPress={() => setModalBudget(true)}>
-              <Text style={styles.budget}>
-                Orçamento: {orcamento ? `R$ ${orcamento}` : ""}
-                <AntDesign name="edit" style={styles.icon} />
-              </Text>
-            </TouchableOpacity>
-          )
-        }
       </View>
 
       <View style={styles.products}>
-        <FlatList
-          data={allProducts}
-          renderItem={renderProductItem}
-          ListFooterComponent={renderFooter}
-        />
+        {
+          loading
+          ? <ActivityIndicator style={{ marginBottom: 20 }} size="large" color="black" />
+          : (
+            <FlatList
+              data={allProducts}
+              renderItem={renderProductItem}
+              ListFooterComponent={renderFooter}
+            />
+          )
+        }
       </View>
 
       <TouchableOpacity
@@ -364,8 +380,13 @@ const NewList = () => {
         onPress={updateList}
       >
         <Text style={styles.saveButtonText}>
-          Criar  <FontAwesome5 name="save" style={{ color: 'white', fontSize: 16 }} />
+          {loadingCreate
+            ? <ActivityIndicator style={{ marginLeft: 10 }} size="small" color="white" />
+            : `Criar  `
+          }
+          {loadingCreate ? null : <FontAwesome5 name="save" style={{ color: 'white', fontSize: 16 }} />}
         </Text>
+
       </TouchableOpacity>
 
       <Modal
@@ -398,40 +419,6 @@ const NewList = () => {
                     </View>
                 </View>
             </View>
-      </Modal>
-      
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalBudget}
-        onRequestClose={() => setModalBudget(false)}
-      >
-        <View style={styles.overlay} />
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Preencha os campos abaixo:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="R$"
-              value={orcamento}
-              onChangeText={(text) => setOrcamento(text)}
-            />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonSave]}
-                onPress={handleSaveBudget}
-              >
-                <Text style={styles.buttonText}>Salvar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonCancel]}
-                onPress={() => setModalBudget(false)}
-              >
-                <Text style={styles.buttonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
       </Modal>
 
       <Modal

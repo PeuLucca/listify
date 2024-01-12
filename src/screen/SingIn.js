@@ -6,7 +6,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -25,6 +26,7 @@ console.disableYellowBox = true;
 
 const SignIn = () => {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
   // Form
   const [email, setEmail] = useState("");
@@ -54,6 +56,7 @@ const SignIn = () => {
   // LogIn functions
   const logUserIn = async () => {
     try {
+      setLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
       const uid_data = user.uid;
@@ -74,6 +77,8 @@ const SignIn = () => {
       const errorMessage = error.message;
       console.error(errorCode);
       console.error(errorMessage);
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -109,7 +114,13 @@ const SignIn = () => {
             secureTextEntry
           />
           <TouchableOpacity style={styles.button} onPress={handleValidateUser}>
-            <Text style={styles.buttonText}>Logar</Text>
+            <Text style={styles.buttonText}>
+              {
+                loading
+                ? <ActivityIndicator size="small" color="white" />
+                : "Logar"
+              }
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

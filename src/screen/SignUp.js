@@ -6,7 +6,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -25,6 +26,8 @@ console.disableYellowBox = true;
 
 const SignUp = () => {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
+
   // Form
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -60,6 +63,7 @@ const SignUp = () => {
   // Firebase functions
   const saveUser = async () => {
     try {
+      setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
       const uid_data = user.uid;
@@ -74,6 +78,8 @@ const SignUp = () => {
       const errorMessage = error.message;
       console.error(errorCode);
       console.error(errorMessage);
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -120,7 +126,13 @@ const SignUp = () => {
             secureTextEntry
           />
           <TouchableOpacity style={styles.button} onPress={handleValidateUser}>
-            <Text style={styles.buttonText}>Criar usuário</Text>
+            <Text style={styles.buttonText}>
+              {
+                loading
+                ? <ActivityIndicator size="small" color="white" />
+                : "Criar usuário"
+              }
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

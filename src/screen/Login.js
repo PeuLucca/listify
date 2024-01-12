@@ -7,6 +7,7 @@ import {
   Text,
   Alert,
   ScrollView,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -26,6 +27,7 @@ const Login = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Handle functions
   const handleLogin = () => {
@@ -55,6 +57,7 @@ const Login = () => {
   // Async functions
   const fetchData = async () => {
     try {
+      setLoading(true);
       const usersRef = ref(database, 'users');
       const snapshot = await get(usersRef);
 
@@ -68,6 +71,8 @@ const Login = () => {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,7 +93,10 @@ const Login = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-          {allUsers.map((user, index) => (
+          {
+          loading ? (
+            <ActivityIndicator style={{ marginBottom: 20 }} size="large" color="black" />
+            ) : allUsers.map((user, index) => (
             <TouchableOpacity
               key={index}
               style={styles.userBox}
