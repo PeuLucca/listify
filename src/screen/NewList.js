@@ -10,6 +10,7 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from "@react-native-picker/picker"
@@ -125,8 +126,7 @@ const NewList = () => {
       setLoading(false);
     }
   };
-  
-  
+
   const truncateText = (text, maxLength) => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
@@ -140,6 +140,26 @@ const NewList = () => {
   
     // Verifica se é o primeiro item da categoria
     const isFirstItem = index === 0 || (index > 0 && allProducts[index - 1].categoria !== item.categoria);
+
+    let backgroundColor;
+
+    switch (item.categoria.toLowerCase()) {
+      case 'alimentos':
+        backgroundColor = 'lightcoral';
+        break;
+      case 'limpeza':
+        backgroundColor = 'lightblue';
+        break;
+      case 'saude':
+        backgroundColor = 'lightgreen';
+        break;
+      case 'beleza':
+        backgroundColor = '#ad7dc9';
+        break;
+      case 'outros':
+        backgroundColor = 'gold';
+        break;
+    }
   
     return (
       <>
@@ -147,7 +167,16 @@ const NewList = () => {
           <Text style={{
             fontSize: 18,
             fontWeight: 'bold',
-            marginTop: 10
+            marginTop: 10,
+            padding: 2,
+            backgroundColor: backgroundColor,
+            color: '#fff',
+            width: '40%',
+            borderTopLeftRadius: 3,
+            borderBottomLeftRadius: 3,
+            borderTopRightRadius: 15,
+            borderBottomRightRadius: 15,
+            textAlign: 'center'
           }}>{capitalizeFirstLetter(item.categoria)}</Text>
         )}
   
@@ -395,11 +424,12 @@ const NewList = () => {
           loading
           ? <ActivityIndicator style={{ marginBottom: 20 }} size="large" color="black" />
           : (
-            <FlatList
-              data={allProducts}
-              renderItem={renderProductItem}
-              ListFooterComponent={renderFooter}
-            />
+              <FlatList
+                data={allProducts}
+                renderItem={renderProductItem}
+                ListFooterComponent={renderFooter}
+                showsVerticalScrollIndicator={false}
+              />
           )
         }
       </View>
@@ -413,7 +443,7 @@ const NewList = () => {
             ? <ActivityIndicator style={{ marginLeft: 10 }} size="small" color="white" />
             : `Criar  `
           }
-          {loadingCreate ? null : <FontAwesome5 name="save" style={{ color: 'white', fontSize: 16 }} />}
+          {loadingCreate ? null : <FontAwesome5 name="save" style={{ color: 'white', fontSize: 17 }} />}
         </Text>
 
       </TouchableOpacity>
@@ -476,12 +506,16 @@ const NewList = () => {
               />
             </View>
             <View style={{
-              borderWidth: 1,
-              borderColor: '#B2B2B2',
+              borderWidth: 0.5,
+              borderColor: 'black',
               borderRadius: 5,
-              height: 50,
+              height: 52,
               width: '100%',
-              marginBottom: '5%'
+              marginBottom: '5%',
+              borderBottomRightRadius: 10,
+              borderBottomLeftRadius: 5,
+              borderTopRightRadius: 5,
+              borderTopLeftRadius: 10,
               }}
             >
               <Picker
@@ -492,7 +526,7 @@ const NewList = () => {
               >
                 <Picker.Item color="gray" label="Selecione a categoria" value="" />
                 <Picker.Item label="Alimentos" value="alimentos" />
-                <Picker.Item label="Produtos de limpeza" value="limpeza" />
+                <Picker.Item label="Produtos de Limpeza" value="limpeza" />
                 <Picker.Item label="Beleza e Cuidados Pessoais" value="beleza" />
                 <Picker.Item label="Saúde e Bem-Estar" value="saude" />
                 <Picker.Item label="Outros" value="outros" />
@@ -539,18 +573,28 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     padding: 20,
     borderWidth: 0.5,
-    borderColor: 'black',
+    borderColor: 'lightgray',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
   },
-  selectedProducts: {
+  products: {
     backgroundColor: 'white',
     margin: '4%',
+    height: '70%',
     marginBottom: 0,
     padding: 20,
     borderWidth: 0.5,
-    borderColor: 'black',
-    borderRadius: 8
+    borderColor: 'lightgray',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
   },
   productList: {
     flexDirection: 'row',
@@ -572,16 +616,6 @@ const styles = StyleSheet.create({
   item: {
     fontSize: 16,
     fontWeight: '400',
-  },
-  products: {
-    backgroundColor: 'white',
-    margin: '4%',
-    marginBottom: 0,
-    padding: 20,
-    borderWidth: 0.5,
-    borderColor: 'black',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   centeredView: {
     flex: 1,
@@ -644,7 +678,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: 8,
     paddingLeft: 11,
-    borderRadius: 5,
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 5,
+    borderTopRightRadius: 5,
+    borderTopLeftRadius: 10,
     borderWidth: 0.5,
     borderColor: 'black',
     backgroundColor: 'white',
@@ -662,6 +699,13 @@ const styles = StyleSheet.create({
     margin: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 15,
+    marginTop: 15,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
   },
   buttonSave: {
     backgroundColor: 'green',
@@ -675,19 +719,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   saveButton: {
-    margin: '20%',
+    margin: '25%',
     backgroundColor: '#9b59b6',
     padding: 8,
     borderBottomRightRadius: 3,
     borderBottomLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopLeftRadius: 10,
+    borderTopRightRadius: 15,
+    borderTopLeftRadius: 15,
     marginTop: 15,
     alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
   },
   saveButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
   },
 });

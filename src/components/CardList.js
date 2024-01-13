@@ -2,15 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import ProgressBar from 'react-native-progress/Bar';
-import * as Animatable from 'react-native-animatable';
 import { AntDesign } from '@expo/vector-icons';
 
 const CardList = (props) => {
   const {
-    id,
     name,
     list,
-    dataText,
     percentage
   } = props;
 
@@ -61,7 +58,7 @@ const CardList = (props) => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onLongPress={() => console.log("apagar")}>
       <View style={styles.header}>
         <Text style={styles.title}>{name ? truncateText(name, 26) : "Nova lista"}</Text>
         <TouchableOpacity onPress={toggleDropdown}>
@@ -79,10 +76,9 @@ const CardList = (props) => {
           ? <Text style={styles.bottomText}>- Nenhum produto</Text>
           : <Text style={styles.bottomText}>- {listProducts.done} de {listProducts.total} produtos restantes</Text>
         }
-          <Text style={styles.bottomText}>- {dataText}</Text>
         </>
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 
