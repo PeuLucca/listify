@@ -10,7 +10,6 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
-  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from "@react-native-picker/picker"
@@ -23,7 +22,13 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
 
 // Firebase
-import { ref, get, set, push, update } from 'firebase/database';
+import {
+  ref,
+  get,
+  set,
+  push,
+  update
+} from 'firebase/database';
 
 // Firebase Config
 import { database } from "../../firebaseConfig";
@@ -135,7 +140,18 @@ const NewList = () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
+  const handleCloseModal = () => {
+    setModalProduct(false);
+    setNome("");
+    setPreco("");
+    setSelectedCategory("");
+    setLocalCompra("");
+    setUpdateObj(null);
+    setIsUpdate(false);
+  };
+
   const renderProductItem = ({ item, index }) => {
+    const isSelected = itemSelected.includes(item.id);
     const isLastItem = index === allProducts.length - 1;
   
     // Verifica se é o primeiro item da categoria
@@ -191,7 +207,7 @@ const NewList = () => {
             </Text>
           </View>
           <FontAwesome5
-            name={itemSelected.includes(index) ? 'dot-circle' : 'circle'}
+            name={isSelected ? 'dot-circle' : 'circle'}
             size={22}
             color="#888"
           />
@@ -200,21 +216,17 @@ const NewList = () => {
     );
   };
 
-  const handleProductClick = (item, index) => {
-    // Clone the existing array to avoid mutating state directly
+  const handleProductClick = (item) => {
     const updatedSelection = [...itemSelected];
     const updatedItemSelected = [...selectedListItem];
-
-    // Toggle the selection status of the clicked item
-    if (updatedSelection.includes(index)) {
-      // Item is selected, remove it from the selection array
-      updatedSelection.splice(updatedSelection.indexOf(index), 1);
+  
+    if (updatedSelection.includes(item.id)) {
+      updatedSelection.splice(updatedSelection.indexOf(item.id), 1);
     } else {
-      // Item is not selected, add it to the selection array
-      updatedSelection.push(index);
+      updatedSelection.push(item.id);
       updatedItemSelected.push({ id: item.id, status: false });
     }
-
+  
     setItemSelected(updatedSelection);
     setSelectedListItem(updatedItemSelected);
   };
@@ -484,7 +496,7 @@ const NewList = () => {
         animationType="slide"
         transparent={true}
         visible={modalProduct}
-        onRequestClose={() => setModalProduct(false)}
+        onRequestClose={handleCloseModal}
       >
         <View style={styles.overlay} />
         <View style={styles.centeredView}>
@@ -551,7 +563,7 @@ const NewList = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonCancel]}
-                onPress={() => setModalProduct(false)}
+                onPress={handleCloseModal}
               >
                 <Text style={styles.buttonText}>Cancelar</Text>
               </TouchableOpacity>
@@ -576,6 +588,8 @@ const styles = StyleSheet.create({
     borderColor: 'lightgray',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    borderBottomRightRadius: 5,
+    borderBottomLeftRadius: 5,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -589,6 +603,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 0.5,
     borderColor: 'lightgray',
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     elevation: 3,
@@ -649,7 +665,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   name: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '500',
     color: '#222',
     flexDirection: 'row',
@@ -663,11 +679,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '400',
     color: '#222',
-  },
-  budget: {
-    fontSize: 18,
-    fontWeight: '400',
-    color: 'green',
   },
   modalTitle: {
     fontSize: 20,

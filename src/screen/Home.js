@@ -6,7 +6,8 @@ import {
   ScrollView,
   LogBox,
   Text,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -19,7 +20,7 @@ import CardList from '../components/CardList';
 
 // Firebase
 import { signOut } from 'firebase/auth';
-import { ref, get } from 'firebase/database';
+import { ref, get, remove } from 'firebase/database';
 
 // Firebase Config
 import { database, auth } from "../../firebaseConfig";
@@ -30,8 +31,10 @@ import AsyncStorage from '@react-native-community/async-storage';
 LogBox.ignoreAllLogs();
 
 const Home = ({ isUserlogged }) => {
+  const [userId, setUserId] = useState("");
   const [allListsObj, setAllListsObj] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const navigation = useNavigation();
 
   const signUserOff = async () => {
@@ -101,7 +104,43 @@ const Home = ({ isUserlogged }) => {
     }
   };
 
+  const getUserData = async () => {
+    const currentUserId = await AsyncStorage.getItem('key_user_uid');
+    setUserId(currentUserId);
+  };
+
+  const handleGoItemList = (list) => {
+    const id = list.id;
+    navigation.navigate('Lista', { state: { id } });
+  };
+
+  const handleDeleteList = (product) => {
+    Alert.alert(
+      'Atenção!', 'Tem certeza que deseja deletar esta lista?',
+      [
+        {text: 'Cancelar', style: 'cancel'},
+        {text: 'Sim', onPress: () => deleteList(product)},
+      ],
+      { cancelable: false }
+    )
+  };
+
+  const deleteList = async (product) => {
+    try {
+      setDeleting(true);
+      const dataRef = ref(database, `lists/${userId}/${product.id}`);
+      await remove(dataRef);
+
+      setAllListsObj((prevLists) => prevLists.filter(item => item.id !== product.id));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   useEffect(() => {
+    getUserData();
     getAllLists();
   }, [])
 
@@ -110,7 +149,6 @@ const Home = ({ isUserlogged }) => {
       getAllLists();
     });
 
-    // Cleanup do listener ao desmontar o componente
     return () => {
       focusListener();
     };
@@ -136,8 +174,9 @@ const Home = ({ isUserlogged }) => {
                   id={item.id}
                   name={item.nome}
                   list={item.produtos}
-                  dataText={item.data}
                   percentage={item.percentage}
+                  handleGoItemList={() => handleGoItemList(item)}
+                  handleDeleteList={() => handleDeleteList(item)}
                 />
               ))
             ): <Text style={{ fontSize: 15, textAlign: 'center', marginTop: '70%' }}>Nenhuma lista encontrada</Text>

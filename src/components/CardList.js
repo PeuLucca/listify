@@ -8,7 +8,9 @@ const CardList = (props) => {
   const {
     name,
     list,
-    percentage
+    percentage,
+    handleGoItemList,
+    handleDeleteList
   } = props;
 
   const [progress, setProgress] = useState(0);
@@ -50,7 +52,7 @@ const CardList = (props) => {
         const newProgress = prevProgress + 0.01;
         return newProgress >= targetProgress ? targetProgress : newProgress;
       });
-    }, 20);
+    }, 10);
 
     getListProducts();
 
@@ -58,7 +60,7 @@ const CardList = (props) => {
   }, []);
 
   return (
-    <TouchableOpacity style={styles.container} onLongPress={() => console.log("apagar")}>
+    <TouchableOpacity style={styles.container} onPress={handleGoItemList} onLongPress={handleDeleteList}>
       <View style={styles.header}>
         <Text style={styles.title}>{name ? truncateText(name, 26) : "Nova lista"}</Text>
         <TouchableOpacity onPress={toggleDropdown}>
