@@ -222,6 +222,7 @@ const NewList = () => {
   
     if (updatedSelection.includes(item.id)) {
       updatedSelection.splice(updatedSelection.indexOf(item.id), 1);
+      updatedItemSelected.splice(updatedSelection.indexOf(item.id), 1);
     } else {
       updatedSelection.push(item.id);
       updatedItemSelected.push({ id: item.id, status: false });
@@ -299,6 +300,8 @@ const NewList = () => {
         orcamento: ""
       };
 
+      console.log(listName);
+
       setListObj({
         listId: newListRef,
         nome: listName,
@@ -321,7 +324,7 @@ const NewList = () => {
       const dataRef = ref(database, `lists/${userId}/${listId}`);
 
       const listData = {
-        nome: listName,
+        nome: listName ? listName : "Nova lista",
       };
       await update(dataRef, listData);
     }catch(e){
@@ -393,6 +396,8 @@ const NewList = () => {
   
         const listData = {
           produtos: selectedListItem,
+          nome: "Nova lista",
+          orcamento: "",
           data: formattedDate,
         };
 

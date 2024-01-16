@@ -192,7 +192,7 @@ const ItemList = ({ route }) => {
             if (snapshot.exists()) {
                 const allProductsData = snapshot.val();
                 const allProductsArray = Object.values(allProductsData);
-    
+
                 setListName(allProductsArray[1]);
                 setOrcamento(allProductsArray[2]);
     
