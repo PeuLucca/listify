@@ -47,17 +47,25 @@ const CardList = (props) => {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    let animationFrameId;
+    
+    const animate = () => {
       setProgress((prevProgress) => {
-        const newProgress = prevProgress + 0.01;
+        const newProgress = prevProgress + 0.05;
         return newProgress >= targetProgress ? targetProgress : newProgress;
       });
-    }, 10);
-
+  
+      if (progress < targetProgress) {
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+  
+    animate();
     getListProducts();
-
-    return () => clearInterval(interval);
+  
+    return () => cancelAnimationFrame(animationFrameId);
   }, []);
+  
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleGoItemList} onLongPress={handleDeleteList}>

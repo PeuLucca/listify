@@ -243,7 +243,7 @@ const NewList = () => {
   };
 
   const handleSaveProduct = () => {
-    if(nome === "" || preco === ""){
+    if(nome === "" || preco === "" || selectedCategory === ""){
       Alert.alert(
         'Atenção!',
         'Preencha os campos obrigatórios',

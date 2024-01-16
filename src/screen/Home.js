@@ -174,6 +174,7 @@ const Home = ({ isUserlogged }) => {
                   id={item.id}
                   name={item.nome}
                   list={item.produtos}
+                  dataText={item.data}
                   percentage={item.percentage}
                   handleGoItemList={() => handleGoItemList(item)}
                   handleDeleteList={() => handleDeleteList(item)}

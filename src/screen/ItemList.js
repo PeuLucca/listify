@@ -1,5 +1,6 @@
 // Core
 import React, { useEffect, useState } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   StyleSheet,
@@ -38,6 +39,7 @@ const ItemList = ({ route }) => {
     const [loading, setLoading] = useState(false);
     const [loadingListName, setLoadingListName] = useState(false);
     const [itemSelected, setItemSelected] = useState([]);
+    const [selectedProducts, setSelectedProducts] = useState([]);
 
     // Form
     const [listId, setListId] = useState(id);
@@ -111,6 +113,7 @@ const ItemList = ({ route }) => {
               <TouchableOpacity
                 style={styles.productList}
                 onPress={() => handleProductClick(item, index)}
+                onLongPress={() => handleDeleteProduct(item.id)}
               >
                 <View style={{ width: '50%' }}>
                   <Text
@@ -135,15 +138,45 @@ const ItemList = ({ route }) => {
     };
 
     const handleProductClick = (item, index) => {
-        const updatedSelection = [...itemSelected];
-    
-        if (updatedSelection.includes(index)) {
+      const updatedSelection = [...itemSelected];
+      const updatedSelectedProducts = [...selectedProducts];
+  
+      // Verifica se o item já está selecionado
+      if (updatedSelection.includes(index)) {
+          // Remove o item da seleção
           updatedSelection.splice(updatedSelection.indexOf(index), 1);
-        } else {
+          updatedSelectedProducts.splice(updatedSelectedProducts.indexOf(item), 1);
+  
+          // Atualiza o status para false
+          item.status = false;
+      } else {
+          // Adiciona o item à seleção
           updatedSelection.push(index);
-        }
-    
-        setItemSelected(updatedSelection);
+          updatedSelectedProducts.push(item);
+  
+          // Atualiza o status para true
+          item.status = true;
+      }
+      
+      setItemSelected(updatedSelection);
+      setSelectedProducts(updatedSelectedProducts);
+
+      updateListProduct(updatedSelectedProducts);
+    };
+
+    const handleDeleteProduct = (productId) => {
+      Alert.alert(
+        'Atenção!', 'Tem certeza que deseja remover este item?',
+        [
+          {text: 'Cancelar', style: 'cancel'},
+          {text: 'Sim', onPress: () => deleteProduct(productId)},
+        ],
+        { cancelable: false }
+      )
+    };
+
+    const deleteProduct = (productId) => {
+      // deletar item
     };
 
     // Firebase Functions
@@ -170,10 +203,16 @@ const ItemList = ({ route }) => {
                 const productsData = await get(ref(database, `product/${currentUserId}`));
     
                 const updatedSelection = [];
+                const updatedSelectedProducts = [];
                 const productList = productIds.map((productId, index) => {
                     const productData = productsData.val()[productId];
                     if (productStatus[index]) {
                         updatedSelection.push(index);
+                        updatedSelectedProducts.push({
+                          id: productId,
+                          status: productStatus[index],
+                          ...productData
+                        });
                     }
                     return {
                         id: productId,
@@ -183,6 +222,7 @@ const ItemList = ({ route }) => {
                 });
     
                 setItemSelected(updatedSelection);
+                setSelectedProducts(updatedSelectedProducts);
                 setProdutos(productList);
             }
         } catch (e) {
@@ -209,6 +249,27 @@ const ItemList = ({ route }) => {
             setLoading(false);
         }
     };
+
+    const updateListProduct = async (productList) => {
+      try {
+        const dataRef = ref(database, `lists/${userId}/${listId}`);
+        const currentData = await get(dataRef);
+        const currentList = currentData.val();
+    
+        // Atualizar o status dos produtos na lista atual com base na lista atualizada
+        currentList.produtos.forEach((product) => {
+          const updatedProduct = productList.find((updatedItem) => updatedItem.id === product.id);
+    
+          // If updatedProduct is not found, set status to false
+          product.status = updatedProduct ? updatedProduct.status : false;
+        });
+    
+        // Atualizar o banco de dados Firebase
+        await update(dataRef, { produtos: currentList.produtos });
+      } catch (error) {
+        console.error(error);
+      }
+    };    
 
     useEffect(() => {
         getListData();
