@@ -219,7 +219,7 @@ const NewList = () => {
   const handleProductClick = (item) => {
     const updatedSelection = [...itemSelected];
     const updatedItemSelected = [...selectedListItem];
-  
+
     if (updatedSelection.includes(item.id)) {
       updatedSelection.splice(updatedSelection.indexOf(item.id), 1);
       updatedItemSelected.splice(updatedSelection.indexOf(item.id), 1);
@@ -227,7 +227,7 @@ const NewList = () => {
       updatedSelection.push(item.id);
       updatedItemSelected.push({ id: item.id, status: false });
     }
-  
+
     setItemSelected(updatedSelection);
     setSelectedListItem(updatedItemSelected);
   };
@@ -299,8 +299,6 @@ const NewList = () => {
         data: formattedDate,
         orcamento: ""
       };
-
-      console.log(listName);
 
       setListObj({
         listId: newListRef,

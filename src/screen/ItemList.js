@@ -1,6 +1,5 @@
 // Core
 import React, { useEffect, useState } from "react";
-import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   StyleSheet,
@@ -11,8 +10,8 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
-import { Picker } from "@react-native-picker/picker"
 
 // Expo
 import { AntDesign } from '@expo/vector-icons';
@@ -27,6 +26,7 @@ import {
   get,
   set,
   push,
+  remove,
   update
 } from 'firebase/database';
 
@@ -36,10 +36,16 @@ import { database } from "../../firebaseConfig";
 const ItemList = ({ route }) => {
     const { id } = route.params?.state || {};
     const [modal, setModal] = useState(false);
+    const [newProduct, setNewProduct] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isUpdated, setIsUpdated] = useState(false);
     const [loadingListName, setLoadingListName] = useState(false);
     const [itemSelected, setItemSelected] = useState([]);
     const [selectedProducts, setSelectedProducts] = useState([]);
+    // New product
+    const [newItemSelected, setNewItemSelected] = useState([]);
+    const [newSelectedProducts, setNewSelectedProducts] = useState([]);
+    const [allProducts, setAllProducts] = useState([]);
 
     // Form
     const [listId, setListId] = useState(id);
@@ -66,6 +72,84 @@ const ItemList = ({ route }) => {
           : valorFormatado;
       
         return valorFinal;
+    };
+
+    const renderNewProductItem = ({ item, index }) => {
+      const isSelected = newItemSelected.includes(item.id);
+      const isFirstItem = index === 0 || (index > 0 && allProducts[index - 1].categoria !== item.categoria);
+
+      let backgroundColor;
+
+      switch (item.categoria.toLowerCase()) {
+      case 'alimentos':
+          backgroundColor = 'lightcoral';
+          break;
+      case 'limpeza':
+          backgroundColor = 'lightblue';
+          break;
+      case 'saude':
+          backgroundColor = 'lightgreen';
+          break;
+      case 'beleza':
+          backgroundColor = '#ad7dc9';
+          break;
+      case 'outros':
+          backgroundColor = 'gold';
+          break;
+      }
+
+      return (
+          <>
+            {isFirstItem && (
+              <Text style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginTop: 10,
+                padding: 2,
+                backgroundColor: backgroundColor,
+                color: '#fff',
+                width: '40%',
+                borderTopLeftRadius: 3,
+                borderBottomLeftRadius: 3,
+                borderTopRightRadius: 15,
+                borderBottomRightRadius: 15,
+                textAlign: 'center'
+              }}>{capitalizeFirstLetter(item.categoria)}</Text>
+            )}
+      
+            <TouchableOpacity
+              style={styles.productList}
+              onPress={() => handleNewProductClick(item)}
+            >
+              <View style={{ width: '50%' }}>
+                <Text style={styles.item}>
+                  {capitalizeFirstLetter(item.nome)}
+                </Text>
+              </View>
+              <FontAwesome5
+                name={isSelected ? 'dot-circle' : 'circle'}
+                size={22}
+                color="#888"
+              />
+            </TouchableOpacity>
+          </>
+      );
+    };
+
+    const handleNewProductClick = (item) => {
+      const updatedSelection = [...newItemSelected];
+      const updatedItemSelected = [...newSelectedProducts];
+
+      if (updatedSelection.includes(item.id)) {
+        updatedSelection.splice(updatedSelection.indexOf(item.id), 1);
+        updatedItemSelected.splice(updatedSelection.indexOf(item.id), 1);
+      } else {
+        updatedSelection.push(item.id);
+        updatedItemSelected.push({ id: item.id, status: false });
+      }
+
+      setNewItemSelected(updatedSelection);
+      setNewSelectedProducts(updatedItemSelected);
     };
 
     const renderProductItem = ({ item, index }) => {
@@ -164,6 +248,49 @@ const ItemList = ({ route }) => {
       updateListProduct(updatedSelectedProducts);
     };
 
+    const renderFooter = () => (
+      <TouchableOpacity onPress={() => setNewProduct(true)}>
+        <View style={styles.addMore}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '400',
+              color: 'gray',
+              textAlign: 'center'
+            }}
+          >
+            + Adicionar produto
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+
+    const handleUpdateList = async () => {
+      try {
+        setLoading(true);
+        const dataRef = ref(database, `lists/${userId}/${listId}`);
+        const currentData = await get(dataRef);
+        const currentList = currentData.val();
+
+        const existingProducts = currentList.produtos || [];
+
+        const updatedList = {
+          produtos: [...existingProducts, ...newSelectedProducts],
+        };
+
+        await update(dataRef, updatedList);
+
+        setNewProduct(false);
+        setNewSelectedProducts([]);
+        setNewItemSelected([]);
+      } catch (e) {
+        console.error(e);
+      }finally{
+        setLoading(false);
+        setIsUpdated(true);
+      }
+    };    
+
     const handleDeleteProduct = (productId) => {
       Alert.alert(
         'Atenção!', 'Tem certeza que deseja remover este item?',
@@ -175,62 +302,132 @@ const ItemList = ({ route }) => {
       )
     };
 
-    const deleteProduct = (productId) => {
-      // deletar item
+    const deleteProduct = async (productId) => {
+      try {
+        setLoading(true);
+        const dataRef = ref(database, `lists/${userId}/${listId}`);
+        const currentData = await get(dataRef);
+        const currentList = currentData.val();
+        const listProducts = currentList.produtos;
+
+        const indexToRemove = listProducts.findIndex(product => product.id === productId);
+
+        if (indexToRemove !== -1) {
+          currentList.produtos.splice(indexToRemove, 1);
+          await set(dataRef, currentList);
+        }
+      } catch (e) {
+        console.error(e);
+      }finally{
+        setLoading(false);
+        setIsUpdated(true);
+      }
     };
 
     // Firebase Functions
     const getListData = async () => {
-        try {
-            const currentUserId = await AsyncStorage.getItem('key_user_uid');
-            setUserId(currentUserId);
-            setLoading(true);
+      try {
+        setLoading(true);
+        const currentUserId = await AsyncStorage.getItem('key_user_uid');
+        setUserId(currentUserId);
     
-            const usersRef = ref(database, `lists/${currentUserId}/${listId}`);
-            const snapshot = await get(usersRef);
+        const usersRef = ref(database, `lists/${currentUserId}/${listId}`);
+        const snapshot = await get(usersRef);
     
-            if (snapshot.exists()) {
-                const allProductsData = snapshot.val();
-                const allProductsArray = Object.values(allProductsData);
-
-                setListName(allProductsArray[1]);
-                setOrcamento(allProductsArray[2]);
+        if (snapshot.exists()) {
+          const allProductsData = snapshot.val();
+          const allProductsArray = Object.values(allProductsData);
     
-                // Fetch product details for each product ID in the list
-                const productStatus = allProductsArray[3].map(product => product.status);
-
-                const productIds = allProductsArray[3].map(product => product.id);
-                const productsData = await get(ref(database, `product/${currentUserId}`));
+          setListName(allProductsArray[1]);
+          setOrcamento(allProductsArray[2]);
     
-                const updatedSelection = [];
-                const updatedSelectedProducts = [];
-                const productList = productIds.map((productId, index) => {
-                    const productData = productsData.val()[productId];
-                    if (productStatus[index]) {
-                        updatedSelection.push(index);
-                        updatedSelectedProducts.push({
-                          id: productId,
-                          status: productStatus[index],
-                          ...productData
-                        });
-                    }
-                    return {
-                        id: productId,
-                        status: productStatus[index],
-                        ...productData
-                    };
-                });
+          const productStatus = allProductsArray[3].map(product => product.status);
+          const productIds = allProductsArray[3].map(product => product.id);
     
-                setItemSelected(updatedSelection);
-                setSelectedProducts(updatedSelectedProducts);
-                setProdutos(productList);
+          const productsData = await get(ref(database, `product/${currentUserId}`));
+    
+          const updatedSelection = [];
+          const updatedSelectedProducts = [];
+          const productList = productIds.map((productId, index) => {
+            const productData = productsData.val()[productId];
+            if (productStatus[index]) {
+              updatedSelection.push(index);
+              updatedSelectedProducts.push({
+                id: productId,
+                status: productStatus[index],
+                ...productData
+              });
             }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
+            return {
+              id: productId,
+              status: productStatus[index],
+              ...productData
+            };
+          });
+    
+          // Sort productList alphabetically
+          productList.sort((a, b) => a.nome.localeCompare(b.nome));
+    
+          setItemSelected(updatedSelection);
+          setSelectedProducts(updatedSelectedProducts);
+          setProdutos(productList);
         }
-    };
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };    
+
+    const getProductData = async () => {
+      try {
+        setLoading(true);
+        const usersRef = ref(database, 'product');
+        const snapshot = await get(usersRef);
+    
+        if (snapshot.exists()) {
+          const allProductsArray = [];
+    
+          snapshot.forEach((categoriaSnapshot) => {
+            const produtos = categoriaSnapshot.val();
+    
+            for (const productId in produtos) {
+              const product = produtos[productId];
+              allProductsArray.push({
+                nome: product.nome,
+                categoria: product.categoria,
+                preco: product.preco,
+                local: product.local,
+                id: productId
+              });
+            }
+          });
+    
+          // Filter out products that are already in produtos
+          const filteredProducts = allProductsArray.filter(product => !produtos.find(p => p.id === product.id));
+    
+          // Sort the remaining products by category and then by name
+          filteredProducts.sort((a, b) => {
+            const categoriaA = a.categoria.toLowerCase();
+            const categoriaB = b.categoria.toLowerCase();
+            if (categoriaA < categoriaB) return -1;
+            if (categoriaA > categoriaB) return 1;
+    
+            const nomeA = a.nome.toLowerCase();
+            const nomeB = b.nome.toLowerCase();
+            return nomeA.localeCompare(nomeB);
+          });
+    
+          setAllProducts(filteredProducts);
+        } else {
+          console.log('Nenhum produto encontrado');
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };    
 
     const handleUpdate = async () => {
         try{
@@ -269,11 +466,15 @@ const ItemList = ({ route }) => {
       } catch (error) {
         console.error(error);
       }
-    };    
+    };
 
     useEffect(() => {
         getListData();
-    }, [])
+    }, [, isUpdated])
+
+    useEffect(() => {
+      getProductData();
+    }, [isUpdated, newProduct])
 
     return (
         <View style={styles.container}>
@@ -317,6 +518,7 @@ const ItemList = ({ route }) => {
                         <FlatList
                             data={produtos}
                             renderItem={renderProductItem}
+                            ListFooterComponent={renderFooter}
                             keyExtractor={(item) => item.id} 
                             showsVerticalScrollIndicator={false}
                         />
@@ -358,6 +560,49 @@ const ItemList = ({ route }) => {
                                             </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={[styles.button, styles.buttonCancel]} onPress={() => setModal(false)}>
+                                            <Text style={styles.buttonText}>Cancelar</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )
+                        }
+                    </View>
+            </Modal>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={newProduct}
+                onRequestClose={() => setNewProduct(false)}
+            >
+                <View style={styles.overlay} />
+                    <View style={styles.centeredView}>
+                        {
+                            loading
+                            ? <ActivityIndicator size="large" color="black" />
+                            : (
+                                <View style={[styles.modalView, { alignItems: 'stretch' }]}>
+                                    <Text style={styles.modalTitle}>Adicionar produtos:</Text>
+                                    <FlatList
+                                      style={{ height: '40%' }}
+                                        data={allProducts}
+                                        renderItem={renderNewProductItem}
+                                        keyExtractor={(item) => item.id} 
+                                        showsVerticalScrollIndicator={false}
+                                    />
+                                    <View style={styles.buttonContainer}>
+                                        <TouchableOpacity
+                                          style={[styles.button, styles.buttonSave]}
+                                          onPress={handleUpdateList}
+                                        >
+                                            <Text style={styles.buttonText}>
+                                                Atualizar
+                                            </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                          style={[styles.button, styles.buttonCancel]}
+                                          onPress={() => setNewProduct(false)}
+                                        >
                                             <Text style={styles.buttonText}>Cancelar</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -415,6 +660,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  addMore: {
+    padding: 7,
+    borderTopWidth: 0.8,
+    borderTopColor: '#ccc',
   },
   item: {
     fontSize: 16,
