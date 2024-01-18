@@ -47,12 +47,6 @@ const SignIn = () => {
     }
   };
 
-  const handleLogin = () => {
-    AsyncStorage.setItem('key_email', email);
-  
-    navigation.navigate('Home');
-  };
-
   // LogIn functions
   const logUserIn = async () => {
     try {
@@ -63,7 +57,9 @@ const SignIn = () => {
 
       AsyncStorage.setItem('key_user_uid', uid_data);
       updateUserNode(uid_data);
-      handleLogin();
+
+      const savedEmail = AsyncStorage.setItem('key_email', email);
+      navigation.navigate('Home');
 
     } catch (error) {
       Alert.alert(

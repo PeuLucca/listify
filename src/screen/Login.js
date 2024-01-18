@@ -45,13 +45,20 @@ const Login = () => {
     } else {
       Alert.alert(
         'Deseja fazer login?',
-        'Caso já esteja logado com outra conta, você será deslogado!',
+        'Se já estiver autenticado com outra conta, você será desconectado.',
         [
           { text: 'Não', style: 'cancel' },
           { text: 'Sim', onPress: () => handleLogin() }
         ]
       );
     }
+  };
+
+  const truncateText = (text, maxLength) => {
+    if (text.length > maxLength) {
+      return text.substring(0, maxLength) + '...';
+    }
+    return text;
   };
 
   // Async functions
@@ -86,9 +93,20 @@ const Login = () => {
   };
 
   useEffect(() => {
-    fetchData();
     getLoggedUser();
-  }, [, auth]);
+    fetchData();
+  }, [auth]);
+
+  useEffect(() => {
+    const focusListener = navigation.addListener('focus', () => {
+      getLoggedUser();
+      fetchData();
+    });
+
+    return () => {
+      focusListener();
+    };
+  }, [navigation]);
 
   return (
     <ScrollView>
@@ -103,11 +121,11 @@ const Login = () => {
               onPress={() => handleGoHome(user)}
             >
               <View
-                style={[styles.statusIndicator, { backgroundColor: user.email === email ? '#55CE63' : '#FFBC34' }]}
+                style={[styles.statusIndicator, { backgroundColor: user.email !== email ? '#FFBC34' : '#55CE63' }]}
               />
 
-              <Text style={styles.userName}>{user.nome}</Text>
-              <Text style={styles.userEmail}>{user.email}</Text>
+              <Text style={styles.userName}>{truncateText(user.nome, 17)}</Text>
+              <Text style={styles.userEmail}>{truncateText(user.email, 21)}</Text>
               <Text style={styles.lastLogin}>Último Login: {user.lastlogin}</Text>
             </TouchableOpacity>
           ))}

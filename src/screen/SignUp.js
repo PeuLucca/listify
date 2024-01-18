@@ -49,11 +49,6 @@ const SignUp = () => {
     }
   };
 
-  const handleLogin = () => {
-    AsyncStorage.setItem('key_email', email);
-    navigation.navigate('Home');
-  };
-
   const handleClearInputs = () => {
     setNome("");
     setEmail("");
@@ -71,8 +66,9 @@ const SignUp = () => {
       const lastLoginTime_data = user.metadata.lastSignInTime;
   
       AsyncStorage.setItem('key_user_uid', uid_data);
+      AsyncStorage.setItem('key_email', email);
       createUserNode(uid_data, nome, email_data, lastLoginTime_data);
-      handleLogin();
+      navigation.navigate('Home');
     } catch (error) {
       const errorCode = error.code;
       const errorMessage = error.message;

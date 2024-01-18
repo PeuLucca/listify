@@ -84,7 +84,13 @@ const CardList = (props) => {
         {
           listProducts.total === 0
           ? <Text style={styles.bottomText}>- Nenhum produto</Text>
-          : <Text style={styles.bottomText}>- {listProducts.done} de {listProducts.total} produtos restantes</Text>
+          : <Text style={styles.bottomText}>
+              {
+                listProducts.done === listProducts.total
+                ? `${listProducts.done}/${listProducts.total} - Finalizado`
+                : `${listProducts.done}/${listProducts.total} - Restantes`
+              }
+            </Text>
         }
         </>
       )}

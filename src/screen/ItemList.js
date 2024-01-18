@@ -42,6 +42,9 @@ const ItemList = ({ route }) => {
     const [loadingListName, setLoadingListName] = useState(false);
     const [itemSelected, setItemSelected] = useState([]);
     const [selectedProducts, setSelectedProducts] = useState([]);
+    const [precoTotalList, setPrecoTotalList] = useState([]);
+    const [precoTotal, setPrecoTotal] = useState(0);
+
     // New product
     const [newItemSelected, setNewItemSelected] = useState([]);
     const [newSelectedProducts, setNewSelectedProducts] = useState([]);
@@ -52,7 +55,7 @@ const ItemList = ({ route }) => {
     const [userId, setUserId] = useState("");
     const [listName, setListName] = useState("");
     const [orcamento, setOrcamento] = useState("");
-    const [total, setTotal] = useState("00");
+    const [total, setTotal] = useState("0");
     const [produtos, setProdutos] = useState([]);
 
     // Handle Functions
@@ -64,14 +67,16 @@ const ItemList = ({ route }) => {
         return string.charAt(0).toUpperCase() + string.slice(1);
     };
 
-    const formatarPreco = (valor) => {  
-        const valorFormatado = valor.toString().replace(',', '.');
+    const formatarPreco = (valor) => {
+      const valorFormatado = valor.toString().replace(',', '.');
+      const valorNumerico = parseFloat(valorFormatado);
 
-        const valorFinal = Number.isInteger(parseFloat(valorFormatado))
-          ? `${valorFormatado}.00`
-          : valorFormatado;
-      
-        return valorFinal;
+      if (!isNaN(valorNumerico)) {
+        const valorFinal = valorNumerico.toFixed(2);
+        return valorFinal.replace('.', ',');
+      } else {
+        return valorFormatado;
+      }
     };
 
     const renderNewProductItem = ({ item, index }) => {
@@ -154,7 +159,6 @@ const ItemList = ({ route }) => {
 
     const renderProductItem = ({ item, index }) => {
         const isFirstItem = index === 0 || (index > 0 && produtos[index - 1].categoria !== item.categoria);
-
         let backgroundColor;
 
         switch (item.categoria.toLowerCase()) {
@@ -193,22 +197,22 @@ const ItemList = ({ route }) => {
                   textAlign: 'center'
                 }}>{capitalizeFirstLetter(item.categoria)}</Text>
               )}
-        
+
               <TouchableOpacity
                 style={styles.productList}
                 onPress={() => handleProductClick(item, index)}
                 onLongPress={() => handleDeleteProduct(item.id)}
               >
-                <View style={{ width: '50%' }}>
+                <View style={{ width: '70%' }}>
                   <Text
                     style={
-                        [styles.item,
-                            {
-                                textDecorationLine: itemSelected.includes(index) ? 'line-through' : null 
-                            }
-                        ]}
-                    >
-                    {capitalizeFirstLetter(item.nome)}
+                      [styles.item,
+                          {
+                            textDecorationLine: itemSelected.includes(index) ? 'line-through' : null 
+                          }
+                      ]}
+                  >
+                    {capitalizeFirstLetter(item.nome)} (R$ {formatarPreco(item.preco)})
                   </Text>
                 </View>
                 <FontAwesome5
@@ -224,28 +228,47 @@ const ItemList = ({ route }) => {
     const handleProductClick = (item, index) => {
       const updatedSelection = [...itemSelected];
       const updatedSelectedProducts = [...selectedProducts];
-  
+    
       // Verifica se o item já está selecionado
       if (updatedSelection.includes(index)) {
-          // Remove o item da seleção
-          updatedSelection.splice(updatedSelection.indexOf(index), 1);
-          updatedSelectedProducts.splice(updatedSelectedProducts.indexOf(item), 1);
-  
-          // Atualiza o status para false
-          item.status = false;
+        // Remove o item da seleção
+        updatedSelection.splice(updatedSelection.indexOf(index), 1);
+    
+        // Busca o item correspondente no array atualizado
+        const correspondingItemIndex = updatedSelectedProducts.findIndex((selectedItem) => selectedItem.id === item.id);
+    
+        if (correspondingItemIndex !== -1) {
+          updatedSelectedProducts.splice(correspondingItemIndex, 1);
+        }
+    
+        // Atualiza o status para false
+        item.status = false;
       } else {
-          // Adiciona o item à seleção
-          updatedSelection.push(index);
+        // Adiciona o item à seleção
+        updatedSelection.push(index);
+    
+        // Busca o item correspondente no array atualizado
+        const correspondingItem = updatedSelectedProducts.find((selectedItem) => selectedItem.id === item.id);
+    
+        if (!correspondingItem) {
           updatedSelectedProducts.push(item);
-  
-          // Atualiza o status para true
-          item.status = true;
+        }
+    
+        // Atualiza o status para true
+        item.status = true;
       }
-      
+    
       setItemSelected(updatedSelection);
       setSelectedProducts(updatedSelectedProducts);
-
+    
       updateListProduct(updatedSelectedProducts);
+
+      updateTotal(updatedSelectedProducts);
+    };
+
+    const updateTotal = (updatedSelectedProducts) => {
+      const updatedTotal = updatedSelectedProducts.reduce((total, product) => total + parseFloat(product.preco), 0);
+      setTotal(updatedTotal);
     };
 
     const renderFooter = () => (
@@ -263,33 +286,7 @@ const ItemList = ({ route }) => {
           </Text>
         </View>
       </TouchableOpacity>
-    );
-
-    const handleUpdateList = async () => {
-      try {
-        setLoading(true);
-        const dataRef = ref(database, `lists/${userId}/${listId}`);
-        const currentData = await get(dataRef);
-        const currentList = currentData.val();
-
-        const existingProducts = currentList.produtos || [];
-
-        const updatedList = {
-          produtos: [...existingProducts, ...newSelectedProducts],
-        };
-
-        await update(dataRef, updatedList);
-
-        setNewProduct(false);
-        setNewSelectedProducts([]);
-        setNewItemSelected([]);
-      } catch (e) {
-        console.error(e);
-      }finally{
-        setLoading(false);
-        setIsUpdated(true);
-      }
-    };    
+    );   
 
     const handleDeleteProduct = (productId) => {
       Alert.alert(
@@ -300,28 +297,6 @@ const ItemList = ({ route }) => {
         ],
         { cancelable: false }
       )
-    };
-
-    const deleteProduct = async (productId) => {
-      try {
-        setLoading(true);
-        const dataRef = ref(database, `lists/${userId}/${listId}`);
-        const currentData = await get(dataRef);
-        const currentList = currentData.val();
-        const listProducts = currentList.produtos;
-
-        const indexToRemove = listProducts.findIndex(product => product.id === productId);
-
-        if (indexToRemove !== -1) {
-          currentList.produtos.splice(indexToRemove, 1);
-          await set(dataRef, currentList);
-        }
-      } catch (e) {
-        console.error(e);
-      }finally{
-        setLoading(false);
-        setIsUpdated(true);
-      }
     };
 
     // Firebase Functions
@@ -364,13 +339,11 @@ const ItemList = ({ route }) => {
               ...productData
             };
           });
-    
-          // Sort productList alphabetically
-          productList.sort((a, b) => a.nome.localeCompare(b.nome));
-    
+
           setItemSelected(updatedSelection);
           setSelectedProducts(updatedSelectedProducts);
           setProdutos(productList);
+          setIsUpdated(true);
         }
       } catch (e) {
         console.error(e);
@@ -382,7 +355,7 @@ const ItemList = ({ route }) => {
     const getProductData = async () => {
       try {
         setLoading(true);
-        const usersRef = ref(database, 'product');
+        const usersRef = ref(database, `product/${userId}`);
         const snapshot = await get(usersRef);
     
         if (snapshot.exists()) {
@@ -446,6 +419,59 @@ const ItemList = ({ route }) => {
             setLoading(false);
         }
     };
+    
+    const handleUpdateList = async () => {
+      try {
+        setLoading(true);
+        const dataRef = ref(database, `lists/${userId}/${listId}`);
+        const currentData = await get(dataRef);
+        const currentList = currentData.val();
+    
+        const existingProducts = currentList.produtos || [];
+    
+        // Fetch details for new items from the product database
+        const newProductsDetailsPromises = newSelectedProducts.map(async (item) => {
+          const productRef = ref(database, `product/${userId}/${item.id}`);
+          const productSnapshot = await get(productRef);
+          const productData = productSnapshot.val();
+          return {
+            ...item,
+            nome: productData.nome,
+            categoria: productData.categoria,
+          };
+        });
+    
+        // Combine existing products and new selected products
+        const combinedProducts = [...existingProducts, ...(await Promise.all(newProductsDetailsPromises))];
+    
+        // Sort the products alphabetically by categoria and then by nome
+        const sortedProdutos = combinedProducts.sort((a, b) => {
+          if (a.categoria === b.categoria) {
+            return a.nome.localeCompare(b.nome);
+          }
+          return a.categoria.localeCompare(b.categoria);
+        });
+    
+        const updatedList = {
+          produtos: sortedProdutos,
+        };
+    
+        await update(dataRef, updatedList);
+    
+        // Reset state variables
+        setItemSelected([]);
+        setSelectedProducts([]);
+        getListData();
+        setNewProduct(false);
+        setNewSelectedProducts([]);
+        setNewItemSelected([]);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+        setIsUpdated(true);
+      }
+    };    
 
     const updateListProduct = async (productList) => {
       try {
@@ -460,16 +486,42 @@ const ItemList = ({ route }) => {
           // If updatedProduct is not found, set status to false
           product.status = updatedProduct ? updatedProduct.status : false;
         });
-    
-        // Atualizar o banco de dados Firebase
+
         await update(dataRef, { produtos: currentList.produtos });
       } catch (error) {
         console.error(error);
       }
     };
 
+    const deleteProduct = async (productId) => {
+      try {
+        setLoading(true);
+        const dataRef = ref(database, `lists/${userId}/${listId}`);
+        const currentData = await get(dataRef);
+        const currentList = currentData.val();
+        const listProducts = currentList.produtos;
+
+        const indexToRemove = listProducts.findIndex(product => product.id === productId);
+
+        if (indexToRemove !== -1) {
+          currentList.produtos.splice(indexToRemove, 1);
+          await set(dataRef, currentList);
+          setIsUpdated(true);
+          
+          setItemSelected([]);
+          setSelectedProducts([]);
+          getListData();
+        }
+      } catch (e) {
+        console.error(e);
+      }finally{
+        setLoading(false);
+      }
+    };
+
     useEffect(() => {
         getListData();
+        updateTotal(selectedProducts);
     }, [, isUpdated])
 
     useEffect(() => {
@@ -494,7 +546,7 @@ const ItemList = ({ route }) => {
                                 </Text>
                                 <Text
                                     style={[styles.precos, {
-                                        color: 'green',
+                                        color: total > orcamento ? 'red' : 'green',
                                         textDecorationLine: 'underline',
                                         fontWeight: '500'
                                     }]}
@@ -519,7 +571,7 @@ const ItemList = ({ route }) => {
                             data={produtos}
                             renderItem={renderProductItem}
                             ListFooterComponent={renderFooter}
-                            keyExtractor={(item) => item.id} 
+                            keyExtractor={(item) => item.id}
                             showsVerticalScrollIndicator={false}
                         />
                     )

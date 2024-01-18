@@ -11,12 +11,21 @@ import Home from './screen/Home';
 import SignUp from './screen/SignUp';
 import SignIn from "./screen/SingIn";
 import NewList from './screen/NewList';
+import NewProduct from './screen/NewProduct';
 import ItemList from './screen/ItemList';
+
+// Async Storage
+import AsyncStorage from '@react-native-community/async-storage';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  const [isUserlogged, setIsUserLogged] = useState({ logged: true, newUser: true });
+  const [isUserlogged, setIsUserLogged] = useState(true);
+
+  const handleLogOff = async () => {
+    AsyncStorage.removeItem('key_email');
+    setIsUserLogged(!isUserlogged);
+  };
 
   return (
     <NavigationContainer>
@@ -41,7 +50,7 @@ const AppNavigator = () => {
             headerRight: () => (
               <TouchableOpacity
                 style={{ marginRight: 10 }}
-                onPress={() => setIsUserLogged({logged: false, newUser: false})}
+                onPress={handleLogOff}
               >
                 <MaterialCommunityIcons
                   name="logout"
@@ -65,6 +74,11 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Nova Lista"
           component={NewList}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="Novo Produto"
+          component={NewProduct}
           options={{ headerShown: true }}
         />
         <Stack.Screen

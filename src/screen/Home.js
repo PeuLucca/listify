@@ -40,73 +40,18 @@ const Home = ({ isUserlogged }) => {
   const signUserOff = async () => {
     try {
       await signOut(auth);
-      AsyncStorage.removeItem('key_email');
       AsyncStorage.removeItem('key_user_uid');
-
       navigation.navigate('Login');
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
-  const getAllLists = async () => {
-    try {
-      setLoading(true);
-      const usersRef = ref(database, 'lists');
-      const snapshot = await get(usersRef);
-  
-      if (snapshot.exists()) {
-        const allListsData = snapshot.val();
-        const allLists = Object.values(allListsData);
-  
-        const novoArray = [];
-  
-        for (const objeto of allLists) {
-          for (const chave in objeto) {
-            const informacoesDoItem = objeto[chave];
-  
-            let percentage = 0;
-            if (informacoesDoItem.produtos) {
-              let produtos = informacoesDoItem.produtos;
-              let percentageArray = [];
-  
-              // Loop para percorrer cada produto
-              for (let i = 0; i < produtos.length; i++) {
-                percentageArray.push(produtos[i].status);
-              }
-  
-              let totalItems = percentageArray.length;
-              let trueCount = percentageArray.filter((item) => item === true).length;
-  
-              if (totalItems > 0) {
-                percentage = trueCount / totalItems;
-              }
-            }
-  
-            const novoObjeto = {
-              id: chave,
-              data: informacoesDoItem.data,
-              nome: informacoesDoItem.nome,
-              produtos: informacoesDoItem.produtos,
-              percentage: percentage,
-            };
-  
-            novoArray.push(novoObjeto);
-          }
-        }
-
-        setAllListsObj(novoArray);
-      }
-    } catch (e) {
-      console.error(e);
-    }finally {
-      setLoading(false);
+  const fetchUser = async () => {
+    const email = await AsyncStorage.getItem('key_email');
+    if(!email){
+      signUserOff();
     }
-  };
-
-  const getUserData = async () => {
-    const currentUserId = await AsyncStorage.getItem('key_user_uid');
-    setUserId(currentUserId);
   };
 
   const handleGoItemList = (list) => {
@@ -125,6 +70,61 @@ const Home = ({ isUserlogged }) => {
     )
   };
 
+  const getAllLists = async () => {
+    try {
+      const currentUserId = await AsyncStorage.getItem('key_user_uid');
+      setUserId(currentUserId);
+      setLoading(true);
+      const usersRef = ref(database, `lists/${currentUserId}`);
+      const snapshot = await get(usersRef);
+  
+      if (snapshot.exists()) {
+        const allListsData = snapshot.val();
+        const novoArray = [];
+  
+        // Iterar sobre cada lista
+        for (const [id, informacoesDoItem] of Object.entries(allListsData)) {
+          let percentage = 0;
+  
+          if (informacoesDoItem.produtos) {
+            let produtos = informacoesDoItem.produtos;
+            let percentageArray = [];
+  
+            // Loop para percorrer cada produto
+            for (let i = 0; i < produtos.length; i++) {
+              percentageArray.push(produtos[i].status);
+            }
+  
+            let totalItems = percentageArray.length;
+            let trueCount = percentageArray.filter((item) => item === true).length;
+  
+            if (totalItems > 0) {
+              percentage = trueCount / totalItems;
+            }
+          }
+  
+          const novoObjeto = {
+            id: id,
+            data: informacoesDoItem.data,
+            nome: informacoesDoItem.nome,
+            produtos: informacoesDoItem.produtos,
+            percentage: percentage,
+          };
+  
+          novoArray.push(novoObjeto);
+        }
+  
+        novoArray.sort((a, b) => a.nome.localeCompare(b.nome));
+  
+        setAllListsObj(novoArray);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deleteList = async (product) => {
     try {
       setDeleting(true);
@@ -140,13 +140,13 @@ const Home = ({ isUserlogged }) => {
   };
 
   useEffect(() => {
-    getUserData();
     getAllLists();
   }, [])
 
   useEffect(() => {
     const focusListener = navigation.addListener('focus', () => {
       getAllLists();
+      fetchUser();
     });
 
     return () => {
@@ -155,10 +155,8 @@ const Home = ({ isUserlogged }) => {
   }, [navigation]);
 
   useEffect(() => {
-    if(!isUserlogged.logged && !isUserlogged.newUser){
-      signUserOff();
-    }
-  }, [isUserlogged])
+    fetchUser();
+  }, [, isUserlogged]);
 
   return (
     <View style={styles.container}>
@@ -184,7 +182,6 @@ const Home = ({ isUserlogged }) => {
           }
         </ScrollView>
 
-        {/* Action Button */}
         <ActionButton buttonColor="#004E00">
           <ActionButton.Item
             buttonColor="#9b59b6"
@@ -196,7 +193,7 @@ const Home = ({ isUserlogged }) => {
           <ActionButton.Item
             buttonColor="#3498db"
             title="Criar produto"
-            onPress={() => {}}
+            onPress={() => navigation.navigate("Novo Produto")}
           >
             <Icon name="md-cart" style={styles.actionButtonIcon} />
           </ActionButton.Item>
